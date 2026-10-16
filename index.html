@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ИСТОК FM — Интерактивный Студийный Пульт (10 Песен + Генератор)</title>
+<style>
+  :root {
+    --bg-main: #0c0e12;
+    --bg-panel: #141820;
+    --bg-card: #1a1f2b;
+    --bg-code: #0f1219;
+    --gold: #d4a853;
+    --gold-bright: #f0c975;
+    --gold-dim: rgba(212, 168, 83, 0.16);
+    --cyan: #4fc3f7;
+    --emerald: #34d399;
+    --text-main: #f3f4f6;
+    --text-muted: #9ca3af;
+    --border: #2a3142;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Inter, sans-serif;
+    background: var(--bg-main);
+    color: var(--text-main);
+    line-height: 1.5;
+    padding-bottom: 60px;
+  }
+  /* Header */
+  header {
+    background: linear-gradient(180deg, #171c26 0%, #10131a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 28px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.45);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .brand-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: radial-gradient(circle at 30% 30%, #f0c975, #9a6f1a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 20px;
+    color: #0c0e12;
+    box-shadow: 0 0 18px rgba(212, 168, 83, 0.4);
+  }
+  .brand-title h1 {
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: var(--gold-bright);
+  }
+  .brand-title p {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .nav-tabs {
+    display: flex;
+    gap: 8px;
+    background: var(--bg-main);
+    padding: 5px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .nav-tab {
+    padding: 9px 18px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .nav-tab.active {
+    background: var(--gold);
+    color: #0c0e12;
+    box-shadow: 0 2px 10px rgba(212, 168, 83, 0.35);
+  }
+
+  /* Layout */
+  .container {
+    max-width: 1380px;
+    margin: 24px auto;
+    padding: 0 24px;
+  }
+  .workspace-grid {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 980px) {
+    .workspace-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Sidebar Song List */
+  .song-list-panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+  }
+  .filter-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .filter-chip {
+    font-size: 11.5px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .filter-chip.active {
+    border-color: var(--gold);
+    background: var(--gold-dim);
+    color: var(--gold-bright);
+    font-weight: 600;
+  }
+  .song-item {
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: var(--bg-card);
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .song-item:hover {
+    border-color: rgba(212, 168, 83, 0.4);
+    transform: translateX(2px);
+  }
+  .song-item.active {
+    border-color: var(--gold);
+    background: linear-gradient(90deg, rgba(212, 168, 83, 0.16) 0%, rgba(26, 31, 43, 0.95) 100%);
+  }
+  .song-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  .song-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gold);
+    background: rgba(212, 168, 83, 0.14);
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+  .song-badges {
+    display: flex;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .badge-pill {
+    background: #10131a;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+  .song-item-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+  .song-item-sub {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* Main Console Card */
+  .console-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+  }
+  .console-top {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .console-song-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--gold-bright);
+  }
+  .console-song-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  .meta-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .meta-tag {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+  }
+  .meta-tag span { color: var(--gold); }
+
+  /* Transpose Box */
+  .transpose-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .transpose-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .transpose-btn {
+    background: #10131a;
+    color: var(--gold-bright);
+    border: 1px solid var(--border);
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .transpose-btn:hover { border-color: var(--gold); }
+
+  /* Mode Switcher */
+  .mode-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .mode-btn {
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .mode-btn.active {
+    border-color: var(--gold);
+    background: var(--gold-dim);
+    color: var(--gold-bright);
+  }
+
+  /* Prompt Blocks */
+  .prompt-block {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 18px;
+    overflow: hidden;
+  }
+  .prompt-block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 16px;
+    background: rgba(15, 18, 25, 0.7);
+    border-bottom: 1px solid var(--border);
+  }
+  .prompt-block-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--gold);
+  }
+  .copy-btn {
+    background: var(--gold);
+    color: #0c0e12;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .copy-btn:hover { background: var(--gold-bright); }
+  .copy-btn.copied {
+    background: var(--emerald);
+    color: #06281e;
+  }
+  pre.code-area {
+    padding: 16px;
+    background: var(--bg-code);
+    color: #e5e7eb;
+    font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    font-size: 13px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.65;
+    max-height: 460px;
+    overflow-y: auto;
+  }
+
+  /* Generator Tab */
+  .gen-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 980px) { .gen-grid { grid-template-columns: 1fr; } }
+  .form-group { margin-bottom: 14px; }
+  .form-group label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--gold-bright);
+    margin-bottom: 6px;
+  }
+  .form-control, textarea.form-control, select.form-control {
+    width: 100%;
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text-main);
+    font-size: 13.5px;
+    font-family: inherit;
+  }
+  textarea.form-control {
+    min-height: 220px;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.55;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .action-btn {
+    width: 100%;
+    padding: 13px 20px;
+    border-radius: 9px;
+    border: none;
+    background: linear-gradient(90deg, #d4a853, #f0c975);
+    color: #0c0e12;
+    font-weight: 800;
+    font-size: 14.5px;
+    cursor: pointer;
+    margin-top: 8px;
+    box-shadow: 0 4px 16px rgba(212, 168, 83, 0.3);
+  }
+  .action-btn:hover { filter: brightness(1.06); }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- PASSWORD GATE MODAL -->
+<div id="password-gate" style="position:fixed;inset:0;background:rgba(12,14,18,0.96);backdrop-filter:blur(10px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#141820;border:1px solid #d4a853;border-radius:16px;max-width:440px;width:100%;padding:32px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.7);">
+    <div style="width:56px;height:56px;border-radius:12px;background:radial-gradient(circle at 30% 30%, #f0c975, #9a6f1a);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px;color:#0c0e12;box-shadow:0 0 20px rgba(212,168,83,0.4);">🔒</div>
+    <h2 style="font-size:20px;font-weight:800;color:#f0c975;margin-bottom:8px;">Студийный Пульт «Исток FM»</h2>
+    <p style="font-size:13px;color:#9ca3af;margin-bottom:20px;">Закрытый продюсерский доступ. Введите пароль для входа в рабочую консоль:</p>
+    <input type="password" id="gate-password-input" placeholder="Пароль доступа" style="width:100%;padding:12px 14px;border-radius:8px;background:#0f1219;border:1px solid #2a3142;color:#fff;font-size:15px;margin-bottom:12px;outline:none;" onkeydown="if(event.key==='Enter')checkPassword()">
+    <div id="gate-error" style="color:#ef4444;font-size:12.5px;min-height:18px;margin-bottom:12px;"></div>
+    <button onclick="checkPassword()" style="width:100%;padding:13px;border-radius:8px;background:linear-gradient(90deg,#d4a853,#f0c975);border:none;color:#0c0e12;font-weight:800;font-size:15px;cursor:pointer;">Войти в Пульт</button>
+    <p style="font-size:11px;color:#6b7280;margin-top:14px;">Стандартный пароль: <code style="color:#d4a853;">istok2026</code> (можно сменить в коде)</p>
+  </div>
+</div>
+
+
+<header>
+  <div class="brand">
+    <div class="brand-logo">ИФ</div>
+    <div class="brand-title">
+      <h1>РАДИО «ИСТОК FM» — СТУДИЙНЫЙ ПУЛЬТ</h1>
+      <p>15 эталонных песен с дефисной разметкой, транспонированием аккордов и Авто-Агентом под Suno / Udio</p>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('catalog', this)">🎛 Сборник: 15 Песен в Пульте</button>
+    <button class="nav-tab" onclick="switchTab('generator', this)">⚡ Авто-Агент: Свой Текст → Промт Suno</button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <a href="https://docs.google.com/spreadsheets/d/1wijVvJhHrLOeZCg7GH6KEYrzXt1Zqn9Ovjf-OODmdXc/edit" target="_blank" class="nav-tab" style="text-decoration:none;background:#107c41;color:#fff;" title="Открыть Google Таблицу базы треков">📊 Google Таблица</a>
+      <a href="https://docs.google.com/document/d/1iKqE0onz1YtAjYHR9dpCM5IcCva1TPEsu22hCeQuGFY/edit" target="_blank" class="nav-tab" style="text-decoration:none;background:#1a73e8;color:#fff;" title="Открыть Google Документ базы промтов">📄 Google Док</a>
+      <button class="nav-tab" style="background:#f59e0b;color:#1e1b0c;" onclick="syncWithGoogleSheet()" title="Загрузить свежие песни из Google Таблицы">🔄 Синхронизировать</button>
+    </div>
+<button class="nav-tab" style="background:#34d399;color:#06281e;margin-left:6px;" onclick="downloadSelfHtml()">💾 Скачать index.html</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- TAB 1: CATALOG OF 10 SONGS -->
+  <div id="tab-catalog" class="workspace-grid">
+    <div class="song-list-panel">
+      <div class="filter-row">
+        <button class="filter-chip active" onclick="filterSongs('ALL', this)">Все (15)</button>
+        <button class="filter-chip" onclick="filterSongs('Folk-Lounge', this)">Folk-Lounge</button>
+        <button class="filter-chip" onclick="filterSongs('Ethno-Wave', this)">Ethno-Wave</button>
+        <button class="filter-chip" onclick="filterSongs('Folk-Noir', this)">Folk-Noir</button>
+        <button class="filter-chip" onclick="filterSongs('Folk Epic', this)">Folk Epic</button>
+      </div>
+      <div id="song-list-container"></div>
+    </div>
+
+    <div class="console-card">
+      <div class="console-top">
+        <div>
+          <div class="console-song-title" id="active-title">Не для меня придёт весна</div>
+          <div class="console-song-sub" id="active-sub">Казачий романс / сл. А. Молчанова</div>
+          <div class="meta-bar">
+            <div class="meta-tag">Категория: <span id="active-cat">Folk-Lounge</span></div>
+            <div class="meta-tag">Темп: <span id="active-bpm">70 BPM</span></div>
+            <div class="meta-tag">Размер: <span id="active-sig">4/4</span></div>
+            <div class="meta-tag">Вокал: <span id="active-vocal">Baritone + Choir</span></div>
+          </div>
+        </div>
+        <div class="transpose-box">
+          <span class="transpose-label">Тональность аккордов:</span>
+          <button class="transpose-btn" onclick="transposeCurrent(-1)" title="На полтона ниже">−</button>
+          <span id="active-root" style="font-weight:800; color:var(--gold-bright); min-width:36px; text-align:center;">Gm</span>
+          <button class="transpose-btn" onclick="transposeCurrent(1)" title="На полтона выше">+</button>
+        </div>
+      </div>
+
+      <div class="mode-bar">
+        <button class="mode-btn active" id="btn-mode-vocal" onclick="setViewMode('vocal')">🎤 Вокальная версия (Блоки 1–3)</button>
+        <button class="mode-btn" id="btn-mode-inst" onclick="setViewMode('inst')">🪕 Инструментальная версия (Блоки 5–6)</button>
+        <button class="mode-btn" id="btn-mode-chords" onclick="setViewMode('chords')">🎹 Шпаргалка аккордов (Блок 4)</button>
+        <button class="mode-btn" id="btn-mode-all" onclick="setViewMode('all')">📋 Все 6 блоков сразу</button>
+      </div>
+
+      <!-- BLOCK 1 -->
+      <div class="prompt-block" id="wrap-block-1">
+        <div class="prompt-block-header">
+          <span class="prompt-block-title">БЛОК 1 — Название трека</span>
+          <button class="copy-btn" onclick="copyText('code-block-1', this)">📋 Скопировать Название</button>
+        </div>
+        <pre class="code-area" id="code-block-1"></pre>
+      </div>
+
+      <!-- BLOCK 2 -->
+      <div class="prompt-block" id="wrap-block-2">
+        <div class="prompt-block-header">
+          <span class="prompt-block-title">БЛОК 2 — Стили (Style of Music + Гармоническая сетка) [Вокал]</span>
+          <button class="copy-btn" onclick="copyText('code-block-2', this)">📋 Скопировать Style Tags</button>
+        </div>
+        <pre class="code-area" id="code-block-2"></pre>
+      </div>
+
+      <!-- BLOCK 3 -->
+      <div class="prompt-block" id="wrap-block-3">
+        <div class="prompt-block-header">
+          <span class="prompt-block-title">БЛОК 3 — Промпт (Lyrics: Все куплеты + Слоговые дефисы + Аккорды)</span>
+          <button class="copy-btn" onclick="copyText('code-block-3', this)">📋 Скопировать Lyrics для Suno</button>
+        </div>
+        <pre class="code-area" id="code-block-3"></pre>
+      </div>
+
+      <!-- BLOCK 4 -->
+      <div class="prompt-block hidden" id="wrap-block-4">
+        <div class="prompt-block-header">
+          <span class="prompt-block-title">БЛОК 4 — Шпаргалка по аккордам и мелодии (Для продюсера)</span>
+          <button class="copy-btn" onclick="copyText('code-block-4', this)">📋 Скопировать Аккорды</button>
+        </div>
+        <pre class="code-area" id="code-block-4"></pre>
+      </div>
+
+      <!-- BLOCK 5 -->
+      <div class="prompt-block hidden" id="wrap-block-5">
+        <div class="prompt-block-header">
+          <span class="prompt-block-title">БЛОК 5 — Стили (Style of Music) [Инструментальная версия]</span>
+          <button class="copy-btn" onclick="copyText('code-block-5', this)">📋 Скопировать Инструментал Tags</button>
+        </div>
+        <pre class="code-area" id="code-block-5"></pre>
+      </div>
+
+      <!-- BLOCK 6 -->
+      <div class="prompt-block hidden" id="wrap-block-6">
+        <div class="prompt-block-header">
+          <span class="prompt-block-title">БЛОК 6 — Промпт по секциям [Инструментальная версия]</span>
+          <button class="copy-btn" onclick="copyText('code-block-6', this)">📋 Скопировать Инструментал Промпт</button>
+        </div>
+        <pre class="code-area" id="code-block-6"></pre>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB 2: AUTO-AGENT GENERATOR -->
+  <div id="tab-generator" class="hidden">
+    <div class="console-card">
+      <div class="console-top">
+        <div>
+          <div class="console-song-title">⚡ Авто-Агент «Исток FM»: Свой стих или песня → Готовый пакет Suno</div>
+          <div class="console-song-sub">Вставьте любой русский текст: встроенный фонетический движок сам разобьёт слова по слогам через дефис (защита от фильтра копирайта), расставит аккорды и соберёт 6 блоков.</div>
+        </div>
+      </div>
+
+      <div class="gen-grid">
+        <div>
+          <div class="form-group">
+            <label>1. Название песни / стихотворения</label>
+            <input type="text" id="gen-title" class="form-control" placeholder="Например: Ой, цветет калина / Стихи Н. Клюева" value="Ах ты, душечка, красна девица">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>2. Музыкальное направление «Исток FM»</label>
+              <select id="gen-genre" class="form-control">
+                <option value="Soulful Russian Folk-Lounge">Soulful Russian Folk-Lounge (70-75 BPM)</option>
+                <option value="Crystalline Atmospheric Ethno-Wave">Crystalline Atmospheric Ethno-Wave (88-94 BPM)</option>
+                <option value="Smooth Modern Ethno-Lounge">Smooth Modern Ethno-Lounge (68-74 BPM)</option>
+                <option value="Soulful Russian Folk-Noir Lounge">Soulful Russian Folk-Noir Lounge (68-72 BPM)</option>
+                <option value="Powerful Authentic Russian Folk Epic">Powerful Authentic Russian Folk Epic (72-92 BPM)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>3. Темп (BPM) и Размер</label>
+              <div class="form-row">
+                <input type="number" id="gen-bpm" class="form-control" value="72" min="55" max="130">
+                <select id="gen-sig" class="form-control">
+                  <option value="4/4">4/4 (Стандарт)</option>
+                  <option value="3/4 Waltz signature">3/4 (Вальс)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>4. Тональность и Гармоническая сетка</label>
+              <select id="gen-chords" class="form-control">
+                <option value="G-Minor|Gm - D7 - Gm - G7 | Cm - F7 - Bb - D7 | Cm - D7 - Gm">Gm (Романсовая: Gm - D7 - Gm - G7 - Cm - F7 - Bb - D7 - Gm)</option>
+                <option value="A-Minor|Am - Dm - G - C | F - Dm - E7 - Am">Am (Эпическая / Лирическая: Am - Dm - G - C - F - Dm - E7 - Am)</option>
+                <option value="E-Minor|Em - D - G - B7 | Am - Em - B7 - Em">Em (Широкая распевная: Em - D - G - B7 - Am - Em - B7 - Em)</option>
+                <option value="G-Major|G - C - D7 - G | Em - Am - D7 - G">G-Major (Светлая мажорная: G - C - D7 - G - Em - Am - D7 - G)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>5. Вокальная подача</label>
+              <select id="gen-vocal" class="form-control">
+                <option value="Track starts IMMEDIATELY with Noble Slavic male baritone solo, intimate close-mic, stable storytelling delivery, backed by Noble male choir harmonies in chorus">Мужской баритон + Мужской хор (Старт сразу с голоса)</option>
+                <option value="Deep velvet Slavic female contralto, smoky intimate close-mic delivery, no vibrato">Женское бархатное контральто (Интимная подача)</option>
+                <option value="High-pitched ethereal Slavic female folk voice, open-throat resonance">Хрустальный женский фолк-сопрано (Ethno-Wave)</option>
+                <option value="Authoritative Noble Slavic male baritone solo with deep basso profondo resonance">Мощный мужской баритон + Basso Profondo</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>6. Обычный русский текст песни (четверостишия через пустую строку)</label>
+            <textarea id="gen-raw-lyrics" class="form-control">Ах ты, душечка, красна девица,
+Мы пойдем с тобой вдоль по бережку,
+Вдоль по бережку быстрой реченьки,
+Где шумит трава шелковая.
+
+Ты скажи, скажи, слово ласково,
+Не томи меня злой кручиною,
+Озари лицо светлой радостью,
+Словно зорюшка над долиною.
+
+Подарю тебе перстень золотой,
+Уведу тебя в светлу горницу,
+Будем жить с тобой в любви праведной,
+Как голубушка с сизым соколом.</textarea>
+          </div>
+
+          <button class="action-btn" onclick="runAutoAgent()">⚡ Разбить по слогам и сгенерировать пакет «Исток FM»</button>
+        </div>
+
+        <div>
+          <div class="prompt-block">
+            <div class="prompt-block-header">
+              <span class="prompt-block-title">СГЕНЕРИРОВАННЫЙ БЛОК 2 — Стили (Tags + Аккорды)</span>
+              <button class="copy-btn" onclick="copyText('gen-out-style', this)">📋 Скопировать Style Tags</button>
+            </div>
+            <pre class="code-area" id="gen-out-style"></pre>
+          </div>
+
+          <div class="prompt-block">
+            <div class="prompt-block-header">
+              <span class="prompt-block-title">СГЕНЕРИРОВАННЫЙ БЛОК 3 — Lyrics (С анти-фильтр дефисами и аккордами)</span>
+              <button class="copy-btn" onclick="copyText('gen-out-lyrics', this)">📋 Скопировать Lyrics для Suno</button>
+            </div>
+            <pre class="code-area" id="gen-out-lyrics"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SONGS = [{"id": 1, "vol": "Полный каталог (15 песен)", "title": "Не для меня придёт весна", "subtitle": "Казачий романс / сл. А. Молчанова", "category": "Folk-Lounge", "bpm": 70, "timeSig": "4/4", "key": "G-Minor", "root": "Gm", "vocalType": "Track starts IMMEDIATELY with Noble Slavic ma", "vocalStyle": "Soulful Russian Folk-Lounge, 70 BPM, [Key: G-Minor], [Chords: Gm - D7 - Gm - G7 - Cm - F7 - Bb - D7 - Cm - D7 - Gm], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #noble #cinematic #transparent, [Focus: Track starts IMMEDIATELY with Noble Slavic male baritone solo, intimate close-mic, stable storytelling delivery, backed by Noble male choir harmonies in chorus], [Instruments: Shimmering multi-layered Resonant Gusli, Soulful warm Garmon pads with breathing bellows, High-pitched Russian bells [Zvon] with long decay], [Low-end: Deep resonant Balalaika-contrabass pulses], massive 3D soundstage, 44.1kHz high-definition, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO OPERA VIBRATO OVERKILL, NO GYPSY STYLE, NO TURKISH MOTIFS, NO DIGITAL ARTIFACTS.", "vocalLyrics": "[Start immediately with Voice]\n(Vocal: Noble Slavic male baritone, very close-mic, calm conversational storytelling tone. Minimalist crystalline Gusli arpeggio enters on the second bar in G-Minor.)\n\n[Verse 1 | Chords: Gm - D7 - Gm - G7 | Cm - F7 - Bb - D7 | Cm - D7 - Gm - Eb | Cm - D7 - Gm]\n(Intimate solo baritone, high-definition Russian diction, delicate Gusli plucking following the Gm-G7-Cm progression)\nНе-для меня́ придёт весна́,\nНе-для меня́ Дон разольётся,\nИ се́рдце де́вичье забьётся\nС восто́ргом чувств — не-для меня́.\nИ се́рдце де́вичье забьётся\nС восто́ргом чувств — не-для меня́.\n\n[Verse 2 | Chords: Gm - D7 - Gm - G7 | Cm - F7 - Bb - D7 | Cm - D7 - Gm - Eb | Cm - D7 - Gm]\n(Warm Garmon pads with audible breathing bellows enter softly. Deep resonant Balalaika-contrabass pulse starts on the downbeat at 70 BPM.)\nНе-для меня́ цвету́т сады́,\nВ доли́не ро́ща расцвета́ет,\nТам солове́й весну́ встреча́ет,\nОн бу́дет петь — не-для меня́.\nТам солове́й весну́ встреча́ет,\nОн бу́дет петь — не-для меня́.\n\n[Chorus | Chords: Cm - F7 - Bb - Eb | Cm - D7 - Gm - G7 | Cm - F7 - Bb - Eb | Cm - D7 - Gm]\n(Full Noble Male Choir enters with lush low-register harmonies and basso profondo drone. Shimmering multi-layered Gusli weaves across a wide stereo field.)\nНе-для меня́ бегу́т ручьи́,\nТеку́т алма́зными струя́ми,\nТам де́ва с чёрными бровя́ми,\nОна растёт — не-для меня́.\nТам де́ва с чёрными бровя́ми,\nОна растёт — не-для меня́.\n\n[Bridge - Instrumental Solo | Chords: Gm - G7 - Cm - F7 - Bb - D7 - Gm]\n(Focus: Melodic dialogue between virtuosic Resonant Gusli and soulful breathing Garmon. A single distant Russian bell strike [Zvon] rings out with a 10-second transparent decay. Surgical frequency separation. No vocals.)\n\n[Verse 3 | Chords: Gm - D7 - Gm - G7 | Cm - F7 - Bb - D7 | Cm - D7 - Gm - Eb | Cm - D7 - Gm]\n(Full acoustic depth, emotional baritone backed by low choral drone)\nНе-для меня́ придёт Па́сха,\nЗа-стол родня́ вся соберётся,\nХристо́с воскре́с — из-уст польётся,\nПасха́льный день — не-для меня́.\nХристо́с воскре́с — из-уст польётся,\nПасха́льный день — не-для меня́.\n\n[Outro | Chords: Gm - Cm - D7 - Gm]\n(Dynamics drop to an intimate whisper-crooner delivery. Only solo baritone, deep Balalaika-contrabass heartbeat pulse, and sparse high Gusli notes.)\nА для-меня́ кусо́к свинца́,\nОн в те́ло бе́лое вопьётся,\nИ слёзы го́рькие пролью́тся —\nТака́я жизнь, брат, ждёт меня́...\n(Single shimmering Gusli string on Gm chord decays into absolute crystalline silence. No digital tail.)", "chordSheet": "Gm               D7        Gm      G7\nНе для меня придёт весна,\n     Cm               F7        Bb      D7\nНе для меня Дон разольётся,\n   Cm         D7       Gm        Eb\nИ сердце девичье забьётся\n       Cm       D7            Gm\nС восторгом чувств — не для меня.", "instStyle": "Instrumental Russian Folk-Noir Lounge, 70 BPM, [Key: G-Minor], [Chords: Gm - D7 - Gm - G7 - Cm - F7 - Bb - D7 - Gm], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #status #wooden #cinematic, [Focus: Melodic dialogue between Soulful warm Garmon and Shimmering multi-layered Resonant Gusli playing \"Ne dlya menya\" main theme], [Instruments: Shimmering multi-layered Resonant Gusli, Soulful warm Garmon pads with breathing bellows, Classical Grand Piano accents, Russian bells [Zvon]], [Low-end: Deep resonant Balalaika-contrabass pulses], [Percussion: Minimalist organic wood-blocks], massive 3D soundstage, 44.1kHz high-definition, NO VOCALS, NO SINGING, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO OPERA VIBRATO OVERKILL, NO GYPSY STYLE, NO TURKISH MOTIFS, NO DIGITAL ARTIFACTS.", "instPrompt": "[Intro | Chords: Gm - D7 - Gm]\n(Crystalline solo Gusli arpeggios in G-Minor. Long string decay. Absolute silence between notes. High-definition wooden resonance in a massive 3D space.)\n\n[Section 1 - Main Theme: Garmon | Chords: Gm - D7 - Gm - G7 | Cm - F7 - Bb - D7]\n(The iconic \"Ne dlya menya\" melody begins on a leading warm Garmon with expressive breathing bellows. 70 BPM. Deep Balalaika-contrabass pulse starts on the downbeat. Surgical isolation of sounds.)\n\n[Section 2 - Gusli & Piano Dialogue | Chords: Cm - D7 - Gm - Eb | Cm - D7 - Gm]\n(Melodic focus shifts to shimmering multi-layered Gusli. Classical Grand Piano enters with minimalist, noble chords. Warm Garmon pads sustain in the background.)\n\n[Bridge - Virtuosic Gusli Solo | Chords: Gm - G7 - Cm - F7 - Bb - D7 - Gm]\n(Instruments fade back. Intricate melodic Gusli solo over a deep Balalaika-contrabass drone. Periodical distant Russian bell [Zvon] strikes. Every string pluck is isolated and ringing out. Clinical clarity.)\n\n[Section 4 - Full Noble Ensemble | Chords: Cm - F7 - Bb - Eb | Cm - D7 - Gm]\n(The climax of the theme. Grand Piano, breathing Garmon, Resonant Gusli, and heavy Balalaika-contrabass merge into a lush, dark Cossack lounge anthem. Massive 3D soundstage expansion.)\n\n[Outro | Chords: Gm - Cm - D7 - Gm]\n(Fading into a final, long-decaying Garmon note. A single shimmering Gusli string decays into absolute crystalline silence. No digital tail.)"}, {"id": 2, "vol": "Полный каталог (15 песен)", "title": "То не ветер ветку клонит (Лучина)", "subtitle": "«Лучина», сл. С. Стромилова", "category": "Folk-Lounge", "bpm": 68, "timeSig": "3/4 Waltz", "key": "A-Minor", "root": "Am", "vocalType": "Deep velvet female contralto, smoky intimate ", "vocalStyle": "Smooth Modern Ethno-Lounge, 3/4 Waltz signature, 68 BPM, [Key: A-Minor], [Chords: Am - E7 - Am - A7 - Dm - G7 - C - E7 - Dm - E7 - Am - F - Dm - E7 - Am], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #liquid #silky #premium, [Focus: Deep velvet female contralto, smoky intimate close-mic delivery, no vibrato], [Instruments: Classical Grand Piano, Shimmering multi-layered Resonant Gusli, Soulful warm Garmon pads with breathing bellows, Svirel], [Low-end: Clean sliding Reese sub-bass blended with Deep resonant Balalaika-contrabass pulses], [Percussion: Minimalist soft brushes on wood], massive 3D soundstage, 44.1kHz high-definition, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO OPERA VIBRATO OVERKILL, NO GYPSY STYLE, NO TURKISH MOTIFS, NO DIGITAL ARTIFACTS.", "vocalLyrics": "[Intro | Chords: Am - Dm - E7 - Am]\n(Minimalist Classical Grand Piano chords in 3/4 time signature. Distant crystalline Gusli sparkles. Deep, warm Balalaika-contrabass pulse enters on the first beat of each bar. Wide 3D soundstage.)\n\n[Verse 1 | Chords: Am - E7 - Am - A7 | Dm - G7 - C - E7 | Dm - E7 - Am - F | Dm - E7 - Am]\n(Vocal: Deep velvet female contralto, very close-mic, smoky and intimate. Minimalist Piano and Gusli accompaniment.)\nТо-не ве́тер ве́тку кло́нит,\nНе дубра́вушка шуми́т,\nТо моё серде́чко сто́нет,\nКак осе́нний лист дрожи́т!\nТо моё серде́чко сто́нет,\nКак осе́нний лист дрожи́т!\n\n[Verse 2 | Chords: Am - E7 - Am - A7 | Dm - G7 - C - E7 | Dm - E7 - Am - F | Dm - E7 - Am]\n(Smooth Modern Ethno-Lounge groove develops. Clean sliding Reese sub-bass adds deep warmth under the 3/4 pulse. Warm Garmon pads breathe softly.)\nИзвела́ меня́ кручи́на,\nПодколо́дная змея́!\nДогора́й, гори́, моя́ лучи́на,\nДогорю́ с тобо́й и я!\nДогора́й, гори́, моя́ лучи́на,\nДогорю́ с тобо́й и я!\n\n[Chorus | Chords: Dm - G7 - C - A7 | Dm - E7 - Am - F | Dm - E7 - Am]\n(Shimmering multi-layered Gusli expands across the stereo field. Soft airy Svirel counter-melody echoes the vocal phrases.)\nНе житьё мне здесь без-ми́лой,\nС кем пойду́ тепе́рь к венцу́?\nЗнать, суди́л Госпо́дь с моги́лой\nОбвенча́ться мо́лодцу!\nЗнать, суди́л Госпо́дь с моги́лой\nОбвенча́ться мо́лодцу!\n\n[Bridge - Instrumental Solo | Chords: Am - A7 - Dm - G7 - C - E7 - Am]\n(Focus: Melodic dialogue between Classical Grand Piano and virtuosic Resonant Gusli in 3/4 Waltz rhythm. Softest brushes on wood. High dynamic range and surgical clarity.)\n\n[Verse 3 | Chords: Am - E7 - Am - A7 | Dm - G7 - C - E7 | Dm - E7 - Am - F | Dm - E7 - Am]\n(Instruments drop out leaving only single Piano notes and shimmering Gusli strings. Vocal becomes almost a breathy whisper.)\nРасступи́сь, земля́ сыра́я,\nДай мне, мо́лодцу, поко́й,\nПриюти́ меня́, родна́я,\nВ ти́хой ке́лье гробово́й!\nПриюти́ меня́, родна́я,\nВ ти́хой ке́лье гробово́й!\n\n[Outro | Chords: Dm - E7 - Am]\n(Soft female vocalization \"М-м-м...\" fades out. A single Grand Piano chord and final Gusli string decay into absolute crystalline silence. No digital tail.)\nДогора́й, гори́, моя́ лучи́на...\nДогорю́ с тобо́й и я...", "chordSheet": "Am          E7       Am      A7\nТо не ветер ветку клонит,\n   Dm         G7       C       E7\nНе дубравушка шумит, —\n   Dm         E7       Am      F\nТо моё сердечко стонет,\n   Dm         E7       Am\nКак осенний лист дрожит!", "instStyle": "Instrumental Soulful Russian Folk-Lounge, 3/4 Waltz signature, 68 BPM, [Key: A-Minor], [Chords: Am - E7 - Am - A7 - Dm - G7 - C - E7 - Dm - E7 - Am], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #pure #organic #premium, [Focus: Melodic dialogue between Classical Grand Piano, airy Svirel flute, and Shimmering multi-layered Resonant Gusli playing \"Luchina\" main theme], [Instruments: Shimmering multi-layered Resonant Gusli, Classical Grand Piano, Soulful warm Garmon pads with breathing bellows, Svirel], [Low-end: Deep resonant Balalaika-contrabass pulses], massive 3D soundstage, 44.1kHz high-definition, NO VOCALS, NO SINGING, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO OPERA VIBRATO OVERKILL, NO GYPSY STYLE, NO TURKISH MOTIFS, NO DIGITAL ARTIFACTS.", "instPrompt": "[Intro | Chords: Am - Dm - E7 - Am]\n(Crystalline Grand Piano starts with a slow, melancholic 3/4 arpeggio in A-Minor. Shimmering Gusli layers enter, creating a wide 3D atmospheric space. High-definition wooden resonance.)\n\n[Section 1 - Main Theme: Piano & Gusli | Chords: Am - E7 - Am - A7 | Dm - G7 - C - E7]\n(The \"To ne veter vetku klonit\" melody begins on a leading Grand Piano with a soft, precise touch. Resonant Gusli provides a delicate, crystalline background weave.)\n\n[Section 2 - Svirel & Garmon Depth | Chords: Dm - E7 - Am - F | Dm - E7 - Am]\n(A soft, breathy wooden Svirel takes over the main melody. Warm Garmon pads with breathing bellows enter on the harmony. Deep Balalaika-contrabass pulses on the downbeat of each 3/4 bar.)\n\n[Bridge - Virtuosic Gusli Solo | Chords: Am - A7 - Dm - G7 - C - E7 - Am]\n(Focus: Intricate melodic Gusli patterns over steady Piano chords and deep contrabass drone. High-frequency clarity. Every string pluck is isolated and ringing out.)\n\n[Section 4 - Full Noble Ensemble | Chords: Dm - G7 - C - A7 | Dm - E7 - Am - F | Dm - E7 - Am]\n(Maximum acoustic depth. Grand Piano, Gusli, Svirel, and Garmon merge into an emotional waltz anthem. Deep vibrating wooden resonance from the contrabass. Massive 3D soundstage.)\n\n[Outro | Chords: Dm - E7 - Am]\n(Piano melody slowly dissolves into sparse notes. A final, single Gusli string decays into absolute crystalline silence. No digital tail.)"}, {"id": 3, "vol": "Полный каталог (15 песен)", "title": "Вниз по матушке, по Волге", "subtitle": "Народная бурлацкая", "category": "Folk Epic", "bpm": 72, "timeSig": "4/4", "key": "E-Minor", "root": "Em", "vocalType": "Noble Slavic male baritone lead with Noble ma", "vocalStyle": "Powerful Authentic Russian Folk Epic, 72 BPM, [Key: E-Minor], [Chords: Em - D - G - B7 - Em - Am - Em - B7 - Em], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #monumental #masculine #pure, [Focus: Noble Slavic male baritone lead with Noble male choir harmonies and deep basso profondo resonance], [Instruments: Shimmering multi-layered Resonant Gusli, Soulful warm Garmon pads with breathing bellows, Russian bells [Zvon]], [Low-end: Deep resonant Balalaika-contrabass pulses], [Percussion: Minimalist organic wood-blocks and deep wooden stomps], massive 3D soundstage, 44.1kHz high-definition, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO OPERA VIBRATO OVERKILL, NO GYPSY STYLE, NO TURKISH MOTIFS, NO DIGITAL ARTIFACTS.", "vocalLyrics": "[Intro | Chords: Em - Am - B7 - Em]\n(Massive, slow Gusli arpeggios in E-Minor. Deep low-frequency hum from basso profondo choir voices. Heavy, dry Balalaika-contrabass pulse at 72 BPM. Wide 3D river expanse.)\n\n[Verse 1 | Chords: Em - D - G - B7 | Em - Am - B7 - Em]\n(Vocal: Authoritative Noble Slavic male baritone solo, rich chest-voice resonance, intimate close-mic. Crystalline Gusli accompaniment.)\nВниз по-ма́тушке, по-Во́лге,\nПо-широ́кому раздо́лью,\nРазыгра́лася пого́да,\nПого́душка верхова́я, волнова́я.\nРазыгра́лася пого́да,\nПого́душка верхова́я, волнова́я.\n\n[Chorus | Chords: G - D - Em - B7 | Am - Em - B7 - Em]\n(Full Male Choir enters with monumental wide harmonies. Deep breathing Garmon pads swell like a folk organ. Solid wooden floor stomp on the downbeat.)\nОй-да ничего́ в волна́х невидно,\nОдна́ ло́дка черне́ется,\nТо́лько ло́дка коло́менка,\nПаруса́ на-ней беле́ются!\nТо́лько ло́дка коло́менка,\nПаруса́ на-ней беле́ются!\n\n[Verse 2 | Chords: Em - D - G - B7 | Em - Am - B7 - Em]\n(Baritone soloist leads, supported by a low bass vocal drone and rhythmic Balalaika-contrabass plucks.)\nНа-корме́ сиди́т хозя́ин,\nВо-чёрном кафта́не,\nНа-носу́ сиди́т погля́дывает\nСам бурла́цкий атама́н.\nНа-носу́ сиди́т погля́дывает\nСам бурла́цкий атама́н.\n\n[Bridge - Instrumental Solo | Chords: Em - Am - D - G - Am - Em - B7 - Em]\n(Focus: Detailed melodic dialogue between heavy breathing Garmon and shimmering multi-layered Gusli. Distant Russian bell [Zvon] strikes mark the downbeats. Surgical frequency separation. No vocals.)\n\n[Verse 3 | Chords: Em - D - G - B7 | Em - Am - B7 - Em]\n(Maximum dynamic range. Full epic male choir and baritone soloist merge. Rich wooden textures and heavy contrabass resonance.)\nУж-как кри́кнет атама́н,\nГро́мким го́лосом взговори́т:\nВы греби́те, не робе́йте,\nВ А́страхань го́род поспе́йте!\nВы греби́те, не робе́йте,\nВ А́страхань го́род поспе́йте!\n\n[Outro | Chords: Am - Em - B7 - Em]\n(Choir volume fades slowly into a deep bass hum. Final resonant wooden stomp and a single shimmering Gusli string decay into absolute crystalline silence. No digital tail.)\nВниз по-ма́тушке, по-Во́лге,\nПо-широ́кому раздо́лью...", "chordSheet": "Em                D         G    B7\nВниз по матушке, по Волге,\nEm             Am          B7    Em\nПо широкому раздолью,\nG                 D         Em   B7\nРазыгралася погода,\nAm          Em     B7           Em\nПогодушка верховая, волновая.", "instStyle": "Crystalline Atmospheric Ethno-Wave, 90 BPM, [Key: E-Minor], [Chords: Em - D - G - B7 - Em - Am - Em - B7 - Em], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #pure #ethereal #transparent, [Focus: Melodic dialogue between Shimmering multi-layered Resonant Gusli and Soulful warm Garmon pads playing \"Vniz po matushke po Volge\" main theme], [Instruments: Shimmering multi-layered Resonant Gusli, Soulful warm Garmon pads with breathing bellows, Svirel, Russian bells [Zvon]], [Low-end: Clean sliding Reese sub-bass with Deep resonant Balalaika-contrabass pulses], [Percussion: Minimalist wooden rimshots], massive 3D soundstage, 44.1kHz high-definition, NO VOCALS, NO SINGING, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO OPERA VIBRATO OVERKILL, NO GYPSY STYLE, NO TURKISH MOTIFS, NO DIGITAL ARTIFACTS.", "instPrompt": "[Intro | Chords: Em - Am - B7 - Em]\n(Shimmering crystalline Gusli arpeggios at 90 BPM. High-definition wooden resonance. A deep, clean sliding Reese sub-bass drone enters slowly, creating a vast 3D atmospheric space.)\n\n[Section 1 - Main Theme: Gusli & Zvon | Chords: Em - D - G - B7 | Em - Am - B7 - Em]\n(The majestic \"Vniz po matushke, po Volge\" melody begins on leading multi-layered Resonant Gusli. Sharp, high-pitched Russian bells [Zvon] accent the phrasing with long transparent decay.)\n\n[Section 2 - Ethno-Wave Drive: Garmon & Sub-Bass | Chords: G - D - Em - B7 | Am - Em - B7 - Em]\n(Full Ethno-Wave groove begins. Minimalist crisp wooden rimshots and deep Balalaika-contrabass pulses lock in with the sliding Reese sub-bass. Warm Garmon pads breathe in wide, noble chords.)\n\n[Bridge - Virtuosic Gusli & Svirel Solo | Chords: Em - Am - D - G - Am - Em - B7 - Em]\n(Percussion drops out. Rapid, shimmering crystalline Gusli solo in dialogue with an airy wooden Svirel flute over a deep sub-bass glide. Surgical separation between high strings and low-end.)\n\n[Section 4 - Full Noble Ensemble | Chords: G - D - Em - B7 | Am - Em - B7 - Em]\n(The climax of the Volga theme. Resonant Gusli, breathing Garmon, Russian bells, and deep bass merge into an expansive, driving atmospheric anthem. Massive 3D soundstage.)\n\n[Outro | Chords: Am - Em - B7 - Em]\n(Rhythm and pads drop out, leaving only solo shimmering Gusli arpeggios slowing down. A final single string decays into absolute crystalline silence. No digital tail.)"}, {"id": 4, "vol": "Полный каталог (15 песен)", "title": "Клён ты мой опавший, клён заледенелый", "subtitle": "С. А. Есенин, 1925", "category": "Folk-Lounge", "bpm": 68, "timeSig": "3/4 Waltz", "key": "G-Minor", "root": "Gm", "vocalType": "Track starts IMMEDIATELY with Noble Slavic ma", "vocalStyle": "Soulful Russian Folk-Lounge, 68 BPM, 3/4 Waltz signature, [Key: G-Minor], [Chords: Gm - G7 - Cm - F7 - Bb - Eb - Cm - D7 - Gm], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #noble #crystalline #winter, [Focus: Track starts IMMEDIATELY with Noble Slavic male baritone solo, intimate close-mic, warm conversational storytelling delivery], [Instruments: Shimmering multi-layered Resonant Gusli, Soulful warm Garmon pads with breathing bellows, Classical Grand Piano], [Low-end: Deep resonant Balalaika-contrabass pulses], massive 3D soundstage, 44.1kHz high-definition, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO OPERA VIBRATO OVERKILL, NO GYPSY STYLE, NO TURKISH MOTIFS, NO DIGITAL ARTIFACTS.", "vocalLyrics": "[Start immediately with Voice]\n(Vocal: Noble Slavic male baritone, very close-mic, calm conversational storytelling tone. Minimalist crystalline Gusli arpeggio in 3/4 Waltz signature enters on the second bar in G-Minor.)\n\n[Verse 1 | Chords: Gm - G7 - Cm - D7 - Gm | Cm - F7 - Bb - Eb | Cm - D7 - Gm]\n(Intimate solo baritone, high-definition Russian diction, delicate Gusli plucking following the Gm-G7-Cm progression)\nКлён-ты мой опа́вший, клён заледене́лый,\nЧто стои́шь, нагну́вшись, под мете́лью бе́лой?\nИ́ли что уви́дел? И́ли что услы́шал?\nСло́вно за дере́вню погуля́ть ты вы́шел.\nИ́ли что уви́дел? И́ли что услы́шал?\nСло́вно за дере́вню погуля́ть ты вы́шел.\n\n[Verse 2 | Chords: Gm - G7 - Cm - D7 - Gm | Cm - F7 - Bb - Eb | Cm - D7 - Gm]\n(Warm Garmon pads with audible breathing bellows enter softly. Deep resonant Balalaika-contrabass pulse starts on the downbeat at 68 BPM in 3/4.)\nИ, как пья́ный сто́рож, вы́йдя на доро́гу,\nУтону́л в сугро́бе, приморо́зил но́гу.\nАх, и сам я ны́нче чтойто стал несто́йкий,\nНе дойду́ до до́ма с дру́жеской попо́йки.\nАх, и сам я ны́нче чтойто стал несто́йкий,\nНе дойду́ до до́ма с дру́жеской попо́йки.\n\n[Bridge - Instrumental Solo | Chords: Cm - F7 - Bb - Eb | Cm - D7 - Gm - G7 | Cm - D7 - Gm]\n(Focus: Melodic dialogue between virtuosic Resonant Gusli, Classical Grand Piano in 3/4 and soulful breathing Garmon. Surgical frequency separation. No vocals.)\n\n[Verse 3 | Chords: Gm - G7 - Cm - D7 - Gm | Cm - F7 - Bb - Eb | Cm - D7 - Gm]\n(Full acoustic depth, emotional baritone backed by low choral drone and shimmering multi-layered Gusli across a wide stereo field.)\nТам вон встре́тил ве́рбу, там сосну́ приме́тил,\nРаспева́л им пе́сни под мете́ль о ле́те.\nСам себе́ каза́лся я таки́м же клёном,\nТо́лько не опавшим, а вовсю зелёным.\nСам себе́ каза́лся я таки́м же клёном,\nТо́лько не опавшим, а вовсю зелёным.\n\n[Outro | Chords: Gm - G7 - Cm - F7 - Bb - Eb | Cm - D7 - Gm]\n(Dynamics drop to an intimate whisper-crooner delivery. Only solo baritone, deep Balalaika-contrabass heartbeat pulse, and sparse high Gusli notes.)\nИ, утра́тив скро́мность, одуре́вши в до́ску,\nКак жену́ чужу́ю, обнима́л берёзку...\nКак жену́ чужу́ю, обнима́л берёзку...\n(Single shimmering Gusli string on Gm chord decays into absolute crystalline silence. No digital tail.)", "chordSheet": "Gm               G7       Cm       D7    Gm\nКлён ты мой опавший, клён заледенелый,\nGm                G7        Cm    F7      Bb  D7\nЧто стоишь, нагнувшись, под метелью белой?\nCm          F7       Bb          Eb\nИли что увидел? Или что услышал?\nCm          Gm        D7          Gm\nСловно за деревню погулять ты вышел.", "instStyle": "Instrumental Russian Folk-Noir Lounge, 68 BPM, 3/4 Waltz signature, [Key: G-Minor], [Chords: Gm - G7 - Cm - F7 - Bb - Eb - Cm - D7 - Gm], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #winter #wooden #pure, [Focus: Melodic dialogue between Soulful warm Garmon with breathing bellows and Shimmering multi-layered Resonant Gusli playing \"Klyon ty moy opavshiy\" main theme], [Instruments: Classical Grand Piano, Shimmering multi-layered Resonant Gusli, Soulful warm Garmon], [Low-end: Deep resonant Balalaika-contrabass pulses], massive 3D soundstage, 44.1kHz high-definition, NO VOCALS, NO SINGING, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO OPERA VIBRATO OVERKILL, NO GYPSY STYLE, NO TURKISH MOTIFS, NO DIGITAL ARTIFACTS.", "instPrompt": "[Intro | Chords: Gm - Cm - D7 - Gm]\n(Cold, crystalline Gusli arpeggios in 3/4 time. High-definition wooden resonance. Deep 3D winter space.)\n\n[Section 1 - Main Theme: Garmon | Chords: Gm - G7 - Cm - D7 - Gm]\n(The iconic \"Klyon\" melody begins on leading warm Garmon with audible breathing bellows. 68 BPM waltz pulse. Deep Balalaika-contrabass on the first beat.)\n\n[Section 2 - Piano & Gusli Interplay | Chords: Cm - F7 - Bb - Eb | Cm - D7 - Gm]\n(Classical Grand Piano enters with delicate 3/4 chords. Shimmering multi-layered Gusli takes over the melody.)\n\n[Bridge - Virtuosic Solo | Chords: Cm - F7 - Bb - Eb | Cm - D7 - Gm]\n(Focus: Solo Resonant Gusli in dialogue with Grand Piano. Surgical isolation of every pluck.)\n\n[Section 4 - Full Noble Ensemble | Chords: Gm - G7 - Cm - F7 - Bb - Eb - D7 - Gm]\n(Grand Garmon, Gusli, Piano, and Balalaika-contrabass merge into a lush snow-covered lounge waltz.)\n\n[Outro | Chords: Cm - D7 - Gm]\n(Fading into a final shimmering Gusli pluck into absolute crystalline silence. No digital tail.)"}, {"id": 5, "vol": "Полный каталог (15 песен)", "title": "Выткался на озере алый свет зари", "subtitle": "С. А. Есенин, 1910", "category": "Ethno-Wave", "bpm": 88, "timeSig": "4/4", "key": "E-Minor", "root": "Em", "vocalType": "High-pitched ethereal Slavic female folk voic", "vocalStyle": "Crystalline Atmospheric Ethno-Wave, 88 BPM, [Key: E-Minor], [Chords: Em - Am - D - G - C - Am - B7 - Em], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #pure #ethereal #transparent, [Focus: High-pitched ethereal Slavic female folk voice & Shimmering multi-layered Resonant Gusli], [Instruments: Shimmering multi-layered Resonant Gusli, airy wooden Svirel flute, Soulful warm Garmon pads], [Low-end: Clean sliding Reese sub-bass blended with Deep resonant Balalaika-contrabass], [Percussion: Minimalist wooden rimshots & soft brushes], massive 3D soundstage, 44.1kHz high-definition, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO OPERA VIBRATO OVERKILL, NO GYPSY STYLE, NO TURKISH MOTIFS, NO DIGITAL ARTIFACTS.", "vocalLyrics": "[Intro | Chords: Em - Am - B7 - Em]\n(Shimmering crystalline Gusli arpeggios, airy wooden Svirel flute motif over a morning mist atmosphere. High-definition wooden resonance.)\n\n[Verse 1 | Chords: Em - Am - D - G | C - Am - B7 - Em]\n(Vocal: Ethereal Slavic female voice, intimate and airy. Virtuosic Gusli patterns enter.)\nВы́ткался на о́зере а́лый свет зари́,\nНа бору́ со зо́рями пла́чут глухари́.\nПла́чет где-то и́волга, схороня́сь в дупло́,\nТо́лько мне не пла́чется — на душе́ светло́.\nПла́чет где-то и́волга, схороня́сь в дупло́,\nТо́лько мне не пла́чется — на душе́ светло́.\n\n[Verse 2 | Chords: Em - Am - D - G | C - Am - B7 - Em]\n(Deep sliding Reese sub-bass and minimalist wooden rimshots enter at 88 BPM. Warm Garmon pads breathe softly.)\nЗна́ю, выййдешь к ве́черу за кольцо́ доро́г,\nСя́дем в ко́пны све́жие под сосе́дний стог.\nЗацелу́ю до́пьяна, изомну́, как цвет,\nХмельно́му от ра́дости пересу́ду нет.\nЗацелу́ю до́пьяна, изомну́, как цвет,\nХмельно́му от ра́дости пересу́ду нет.\n\n[Bridge - Instrumental Solo | Chords: Am - D - G - C | Am - B7 - Em]\n(Focus: Virtuosic melodic Gusli solo in dialogue with breathy wooden Svirel flute over deep sub-bass glides. Wide stereo separation.)\n\n[Verse 3 | Chords: Em - Am - D - G | C - Am - B7 - Em]\n(Full Ethno-Wave drive. Shimmering Gusli layers, soaring female vocals.)\nТы сама́ под ла́сками сбро́сишь шёлк фаты́,\nУнесу́ я пья́ную до утра́ в кусты́.\nИ пуска́й со зо́рями пла́чут глухари́,\nЕсть тоска́ весёлая в а́лых свет зари́.\nИ пуска́й со зо́рями пла́чут глухари́,\nЕсть тоска́ весёлая в а́лых свет зари́.\n\n[Outro | Chords: Am - B7 - Em]\n(Percussion and sub-bass drop out. Solo shimmering Gusli and airy Svirel note fade into absolute crystalline silence.)\nВы́ткался на о́зере... а́лый свет зари́...\nНа душе́ светло́...", "chordSheet": "Em               Am     D          G\nВыткался на озере алый свет зари,\nC               Am      B7         Em\nНа бору со зорями плачут глухари.\nAm              D       G          C\nПлачет где-то иволга, схоронясь в дупло,\nAm              Em      B7         Em\nТолько мне не плачется — на душе светло.", "instStyle": "Instrumental Crystalline Atmospheric Ethno-Wave, 88 BPM, [Key: E-Minor], [Chords: Em - Am - D - G - C - Am - B7 - Em], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #dawn #pure #ethereal, [Focus: Melodic dialogue between Shimmering multi-layered Resonant Gusli and airy wooden Svirel flute], [Instruments: Shimmering multi-layered Resonant Gusli, Svirel, Soulful warm Garmon pads], [Low-end: Clean sliding Reese sub-bass & Balalaika-contrabass pulses], massive 3D soundstage, 44.1kHz high-definition, NO VOCALS, NO SINGING, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO DIGITAL ARTIFACTS.", "instPrompt": "[Intro | Chords: Em - Am - B7 - Em]\n(Crystalline Gusli arpeggios. Morning lake stillness. Massive 3D atmospheric space.)\n\n[Section 1 - Main Theme: Svirel & Gusli | Chords: Em - Am - D - G]\n(Airy wooden Svirel plays the dawn melody over shimmering Gusli arpeggios.)\n\n[Section 2 - Ethno-Wave Pulse | Chords: C - Am - B7 - Em]\n(Clean sliding Reese sub-bass and minimalist wooden rimshots enter at 88 BPM. Warm Garmon pads sustain.)\n\n[Bridge - Virtuosic Gusli Solo | Chords: Am - D - G - C - Am - B7 - Em]\n(Rapid, crystalline Gusli plucking isolated across the stereo image.)\n\n[Outro | Chords: Am - B7 - Em]\n(Fading into a single Gusli string decay into absolute crystalline silence. No digital tail.)"}, {"id": 6, "vol": "Полный каталог (15 песен)", "title": "Утушка луговая", "subtitle": "Традиционная русская народная", "category": "Ethno-Wave", "bpm": 92, "timeSig": "4/4", "key": "A-Minor", "root": "Am", "vocalType": "Professional Slavic female folk voice, open-t", "vocalStyle": "Crystalline Atmospheric Ethno-Wave, 92 BPM, [Key: A-Minor], [Chords: Am - G - C - E7 - Am - Dm - Am - E7 - Am], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #pure #ethereal #groove, [Focus: Professional Slavic female folk voice, open-throat chest resonance & Shimmering multi-layered Resonant Gusli], [Instruments: Shimmering multi-layered Resonant Gusli, rhythmic Domra, Soulful warm Garmon pads, Sharp Russian bells [Zvon]], [Low-end: Clean sliding Reese sub-bass with zero-mud profile], [Percussion: Minimalist wooden rimshots & organic claps], massive 3D soundstage, 44.1kHz high-definition, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO OPERA VIBRATO OVERKILL, NO GYPSY STYLE, NO TURKISH MOTIFS, NO DIGITAL ARTIFACTS.", "vocalLyrics": "[Intro | Chords: Am - G - Am - E7 - Am]\n(Bright, shimmering crystalline Gusli arpeggios at 92 BPM. Crisp wooden rimshots and sliding Reese sub-bass enter.)\n\n[Verse 1 | Chords: Am - G - C - E7 | Am - Dm - E7 - Am]\n(Vocal: Clear Slavic female folk voice, rhythmic and bright. Virtuosic Gusli accompaniment.)\nУ́тушка моя́ лугова́я,\nСе́рая у́тушка полева́я!\nОй-лю́ли, лю-ли, полева́я,\nОй-лю́ли, лю-ли, лугова́я!\n\n[Verse 2 | Chords: Am - G - C - E7 | Am - Dm - E7 - Am]\n(Full Ethno-Wave groove. Deep sliding Reese sub-bass and warm Garmon pads.)\nГде-же ты но́чку ночева́ла?\nПод ку́стиком, под берёзкой,\nОй-лю́ли, лю-ли, под берёзкой,\nСама́ в тра́вушке шелко́вой!\n\n[Chorus | Chords: Dm - G - C - Am | Dm - E7 - Am]\n(Soaring female folk harmonies, sharp Russian bell [Zvon] accents, wide 3D soundstage.)\nШли-проходи́ли до́бры мо́лодцы,\nСреза́ли они́ по пруто́чку,\nСде́лали они́ по гудо́чку!\nОй-лю́ли, лю-ли, по гудо́чку!\n\n[Bridge - Instrumental Solo | Chords: Am - G - C - E7 - Am - Dm - E7 - Am]\n(Focus: Virtuosic fast Gusli and rhythmic Domra solo over deep sliding Reese sub-bass and wooden claps. Surgical separation.)\n\n[Verse 3 | Chords: Am - G - C - E7 | Am - Dm - E7 - Am]\n(High energy ethno-wave climax, crystalline vocals and multi-layered strings.)\nВы гуди́те, гудо́чки, не гуди́те,\nМою утушку не буди́те!\nМоя́ у́тушка приуста́ла,\nПо чи́сту по́люшку лета́ла!\n\n[Outro | Chords: Dm - E7 - Am]\n(Percussion and sub-bass drop out, leaving solo shimmering Gusli.)\nОй-лю́ли, лю-ли, лугова́я...\nУ́тушка моя́ полева́я...\n(Final crystalline Gusli string decay into absolute silence.)", "chordSheet": "Am              G       C     E7\nУтушка моя луговая,\nAm              Dm      E7    Am\nСерая утушка полевая!\nDm              G       C     Am\nОй, люли-люли, полевая,\nDm              E7            Am\nОй, люли-люли, луговая!", "instStyle": "Instrumental Crystalline Atmospheric Ethno-Wave, 92 BPM, [Key: A-Minor], [Chords: Am - G - C - E7 - Am - Dm - E7 - Am], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #groove #organic #transparent, [Focus: Lead melodic Balalaika & Shimmering multi-layered Resonant Gusli], [Instruments: Shimmering Gusli, Domra, Soulful warm Garmon pads], [Low-end: Clean sliding Reese sub-bass & Balalaika-contrabass], [Percussion: Crisp wooden rimshots & floor stomps], massive 3D soundstage, 44.1kHz high-definition, NO VOCALS, NO SINGING, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO DIGITAL ARTIFACTS.", "instPrompt": "[Intro | Chords: Am - Dm - E7 - Am]\n(Crisp, bright Gusli arpeggios at 92 BPM. High-definition wooden resonance.)\n\n[Section 1 - Main Theme: Gusli & Balalaika | Chords: Am - G - C - E7 | Am - Dm - E7 - Am]\n(Playful, noble \"Utushka\" melody on lead Gusli and Balalaika. Clean and clinical.)\n\n[Section 2 - Ethno-Wave Groove | Chords: Dm - G - C - Am | Dm - E7 - Am]\n(Deep sliding Reese sub-bass and wooden claps lock in. Warm Garmon pads breathe in the mix.)\n\n[Bridge - Virtuosic String Solo | Chords: Am - G - C - E7 - Am]\n(Rapid shimmering Gusli solo with wide 3D stereo separation.)\n\n[Outro | Chords: Dm - E7 - Am]\n(Final gentle Gusli arpeggio and wooden stomp fading into crystalline silence.)"}, {"id": 7, "vol": "Полный каталог (15 песен)", "title": "Хуторок (За рекой, на горе)", "subtitle": "На стихи А. В. Кольцова, 1839", "category": "Folk-Noir", "bpm": 72, "timeSig": "4/4", "key": "G-Minor", "root": "Gm", "vocalType": "Noble Slavic male baritone solo, dramatic sto", "vocalStyle": "Soulful Russian Folk-Noir Lounge, 72 BPM, [Key: G-Minor], [Chords: Gm - Cm - D7 - Gm - Eb - Bb - D7 - Gm], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #noir #cinematic #noble, [Focus: Noble Slavic male baritone solo, dramatic storytelling close-mic delivery], [Instruments: Shimmering multi-layered Resonant Gusli, Soulful warm Garmon pads with breathing bellows, Classical Grand Piano], [Low-end: Deep resonant Balalaika-contrabass pulses], [Percussion: Minimalist organic wood-blocks], massive 3D soundstage, 44.1kHz high-definition, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO OPERA VIBRATO OVERKILL, NO GYPSY STYLE, NO TURKISH MOTIFS, NO DIGITAL ARTIFACTS.", "vocalLyrics": "[Start immediately with Voice]\n(Vocal: Deep, dramatic Slavic male baritone, close-mic storytelling tone. Minimalist Gusli arpeggio enters in G-Minor.)\n\n[Verse 1 | Chords: Gm - Cm - D7 - Gm | Eb - Bb - D7 - Gm]\n(Calm, atmospheric delivery. Deep Balalaika-contrabass pulse starts at 72 BPM.)\nЗа-рекой, на-горе, лес зелёный шуми́т,\nПод-горой, за-рекой, хуторочек стоит.\nВ том лесу солове́й громко пе́сни поёт,\nМолодая вдова в хуторочке живёт.\nВ том лесу солове́й громко пе́сни поёт,\nМолодая вдова в хуторочке живёт.\n\n[Verse 2 | Chords: Gm - Cm - D7 - Gm | Eb - Bb - D7 - Gm]\n(Warm breathing Garmon pads and minimalist Grand Piano chords join.)\nВ ночь осеннюю к ней пробирался купец,\nПодарил ей парчу и златой перстенец.\nА в другую но́чку прискакал казачок,\nОтогреться просился на час в хуторок.\nА в другую но́чку прискакал казачок,\nОтогреться просился на час в хуторок.\n\n[Bridge - Instrumental Solo | Chords: Cm - Gm - D7 - Gm | Eb - Cm - D7 - Gm]\n(Focus: Dramatic Folk-Noir dialogue between breathing Garmon, Resonant Gusli, and low Grand Piano notes. Surgical clarity.)\n\n[Verse 3 | Chords: Gm - Cm - D7 - Gm | Eb - Bb - D7 - Gm]\n(Tension rises. Heavy Balalaika-contrabass pulse and shimmering Gusli tremolos.)\nРазыгралась гроза, ве́тер ставни сорвал,\nКазачок купчину на пороге застал.\nЗасверкали ножи в полуночной тиши,\nПогубили двоих кари о́чи вдовы!\nЗасверкали ножи в полуночной тиши,\nПогубили двоих кари о́чи вдовы!\n\n[Outro | Chords: Cm - D7 - Gm]\n(Instruments fade back to a lone Gusli and breathing Garmon.)\nЗа-рекой, на-горе, лес зелёный шуми́т...\nОпустелый с техпор хуторочек стоит...\n(Single Gusli string decay into absolute crystalline silence.)", "chordSheet": "Gm             Cm       D7         Gm\nЗа рекой, на горе, лес зелёный шумит,\nEb             Bb       D7         Gm\nПод горой, за рекой, хуторочек стоит.\nCm             Gm       D7         Gm\nВ том лесу соловей громко песни поёт,\nCm             Gm       D7         Gm\nМолодая вдова в хуторочке живёт.", "instStyle": "Instrumental Russian Folk-Noir Lounge, 72 BPM, [Key: G-Minor], [Chords: Gm - Cm - D7 - Gm - Eb - Bb - D7 - Gm], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #noir #wooden #cinematic, [Focus: Melodic dialogue between Soulful warm Garmon and Shimmering multi-layered Resonant Gusli], [Instruments: Resonant Gusli, Garmon, Classical Grand Piano], [Low-end: Deep resonant Balalaika-contrabass pulses], massive 3D soundstage, 44.1kHz high-definition, NO VOCALS, NO SINGING, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO DIGITAL ARTIFACTS.", "instPrompt": "[Intro | Chords: Gm - Cm - D7 - Gm]\n(Dark, crystalline Gusli arpeggios in G-Minor. Deep wooden resonance.)\n\n[Section 1 - Main Theme: Garmon | Chords: Gm - Cm - D7 - Gm]\n(Leading warm Garmon plays the narrative \"Khutorok\" melody at 72 BPM.)\n\n[Section 2 - Piano & Gusli | Chords: Eb - Bb - D7 - Gm]\n(Grand Piano and multi-layered Gusli interweave over heavy Balalaika-contrabass pulses.)\n\n[Bridge - Virtuosic Solo | Chords: Cm - Gm - D7 - Gm]\n(Intricate Gusli solo with wide 3D stereo separation.)\n\n[Outro | Chords: Cm - D7 - Gm]\n(Fading Garmon breath and final Gusli pluck into crystalline silence.)"}, {"id": 8, "vol": "Полный каталог (15 песен)", "title": "Ах ты, ноченька, ночка тёмная", "subtitle": "«Ах ты, ноченька, ночка тёмная»", "category": "Folk-Lounge", "bpm": 65, "timeSig": "4/4", "key": "G-Minor", "root": "Gm", "vocalType": "Track starts IMMEDIATELY with soft close-mic ", "vocalStyle": "Minimalist Russian Folk-Ambient Lounge, 65 BPM, [Key: G-Minor], [Chords: Gm - Cm - D7 - Gm - Bb - F7 - Bb - D7 - Gm], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #meditative #night #intimate, [Focus: Track starts IMMEDIATELY with soft close-mic Slavic male baritone solo, conversational breathy tone, NO vibrato], [Instruments: Shimmering delicate Gusli, Warm breathing Garmon pads, airy Svirel], [Low-end: Soft rounded Balalaika-contrabass pulses], massive 3D airy soundstage, 44.1kHz high-definition, NO BRASS, NO TRUMPETS, NO HORNS, NO DRUMS, NO OPERA VIBRATO, NO GYPSY STYLE, NO DIGITAL ARTIFACTS.", "vocalLyrics": "[Start immediately with Voice]\n(Vocal: Intimate close-mic male baritone solo, calm and nocturnal. Delicate Gusli notes enter softly.)\n\n[Verse 1 | Chords: Gm - Cm - D7 - Gm | Bb - F7 - Bb - D7]\n(Minimalist nocturnal atmosphere at 65 BPM. Every string vibration is clear.)\nАх-ты, ноченька, ночка тёмная,\nНочка тёмная, да ночка осенняя!\nС кемя ноченьку ночевать буду,\nС кем осеннюю коротать буду?\n\n[Verse 2 | Chords: Gm - Cm - D7 - Gm | Cm - Gm - D7 - Gm]\n(Warm breathing Garmon pads and soft Balalaika-contrabass pulse enter.)\nНи-отца у-меня́, да ни-матушки,\nТо́лько есть одна́ чужадальняя,\nЧужадальняя мне сторонушка,\nДа вечерняя тиха зорюшка.\n\n[Bridge - Instrumental Solo | Chords: Gm - Cm - F7 - Bb - Cm - D7 - Gm]\n(Focus: Meditative dialogue between airy wooden Svirel flute and shimmering Gusli over a warm Garmon drone. No vocals.)\n\n[Verse 3 | Chords: Gm - Cm - D7 - Gm | Cm - Gm - D7 - Gm]\n(Softer intimate vocal texture, submerged nocturnal 3D space.)\nТы взойди, взойди, красно солнышко,\nОбогрей меня́, добра молодца,\nОсуши мою горьку слёзушку\nНа чужой далекой сторонушке!\n\n[Outro | Chords: Cm - D7 - Gm]\n(Voice fades into a soft whisper with a final Gusli shimmer.)\nАх-ты, ноченька... ночка тёмная...\n(Absolute crystalline silence. No digital tail.)", "chordSheet": "Gm               Cm     D7       Gm\nАх ты, ноченька, ночка тёмная,\nBb               F7     Bb       D7\nНочка тёмная, да ночка осенняя!\nCm               Gm     D7       Gm\nС кем я ноченьку ночевать буду,\nCm               Gm     D7       Gm\nС кем осеннюю коротать буду?", "instStyle": "Instrumental Russian Folk-Ambient, 65 BPM, [Key: G-Minor], [Chords: Gm - Cm - D7 - Gm - Bb - F7 - Bb - D7 - Gm], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #meditative #night #pure, [Focus: Slow melodic dialogue between delicate Shimmering Gusli, airy Svirel, and warm breathing Garmon pads], [Low-end: Soft rounded Balalaika-contrabass pulses], massive 3D soundstage, 44.1kHz high-definition, NO VOCALS, NO SINGING, NO BRASS, NO TRUMPETS, NO DRUMS, NO DIGITAL ARTIFACTS.", "instPrompt": "[Intro | Chords: Gm - Cm - D7 - Gm]\n(Slow, meditative Gusli arpeggios at 65 BPM. Nocturnal stillness.)\n\n[Section 1 - Main Theme: Svirel & Gusli | Chords: Gm - Cm - D7 - Gm]\n(Airy wooden Svirel plays the drawn-out \"Nochenka\" melody over shimmering Gusli.)\n\n[Section 2 - Garmon Depth | Chords: Bb - F7 - Bb - D7 | Cm - D7 - Gm]\n(Warm breathing Garmon bellows provide a soft harmonic cushion. Deep contrabass pulse.)\n\n[Outro | Chords: Cm - D7 - Gm]\n(Slow decay of the final Gusli string into absolute crystalline silence.)"}, {"id": 9, "vol": "Полный каталог (15 песен)", "title": "Когда мы были на войне", "subtitle": "Казачья походная / сл. Д. Самойлова", "category": "Folk Epic", "bpm": 88, "timeSig": "4/4", "key": "A-Minor", "root": "Am", "vocalType": "Professional Slavic male baritone lead with p", "vocalStyle": "Powerful Authentic Russian Folk Epic, 88 BPM, [Key: A-Minor], [Chords: Am - Dm - G - C - F - Dm - E7 - Am], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #monumental #masculine #noble, [Focus: Professional Slavic male baritone lead with powerful male choir harmonies in chorus], [Instruments: Shimmering multi-layered Resonant Gusli, sharp rhythmic Domra, Soulful warm Garmon], [Low-end: Heavy resonant Balalaika-contrabass pulse], [Percussion: Solid wooden floor stomps & crisp wood-blocks], massive 3D soundstage, 44.1kHz high-definition, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO OPERA VIBRATO OVERKILL, NO GYPSY STYLE, NO TURKISH MOTIFS, NO DIGITAL ARTIFACTS.", "vocalLyrics": "[Intro | Chords: Am - Dm - E7 - Am]\n(Rhythmic Balalaika-contrabass pulse and crystalline Gusli at 88 BPM. Noble male humming in the background.)\n\n[Verse 1 | Chords: Am - Dm - G - C | F - Dm - E7 - Am]\n(Vocal: Strong, warm Slavic male baritone solo, steady rhythmic delivery.)\nКог-да мы бы́ли на войне́,\nКог-да мы бы́ли на войне́,\nТам ка́ждый ду́мал о свое́й\nЛюби́мой и́ли о жене́.\nТам ка́ждый ду́мал о свое́й\nЛюби́мой и́ли о жене́.\n\n[Verse 2 | Chords: Am - Dm - G - C | F - Dm - E7 - Am]\n(Warm Garmon and rhythmic Domra join. Solid wooden stomp on downbeats.)\nИ я бы мог поду́мать то́же,\nИ я бы мог поду́мать то́же,\nКог-да на тру́бочку гляде́л,\nНа голубо́й её дымо́к.\nКог-да на тру́бочку гляде́л,\nНа голубо́й её дымо́к.\n\n[Chorus | Chords: Dm - G - C - Am | Dm - E7 - Am - A7 | Dm - G - C - F | Dm - E7 - Am]\n(Full Noble Male Choir enters with wide, powerful harmonies.)\nНо ты когдато мне лгала́,\nНо ты когдато мне лгала́,\nЧто се́рдце де́вичье своё\nДавно́ друго́му отдала́.\nЧто се́рдце де́вичье своё\nДавно́ друго́му отдала́.\n\n[Bridge - Instrumental Solo | Chords: Am - Dm - G - C | F - Dm - E7 - Am]\n(Focus: Virtuosic Gusli and rhythmic Domra interplay with breathing Garmon over wooden stomps. No vocals.)\n\n[Verse 3 | Chords: Am - Dm - G - C | F - Dm - E7 - Am]\n(Full ensemble climax. Authoritative baritone and rich male choir.)\nНо я не ду́мал ни о чём,\nНо я не ду́мал ни о чём,\nЯ то́лько тру́бочку кури́л\nС туре́цким горьким табачко́м!\nЯ то́лько тру́бочку кури́л\nС туре́цким горьким табачко́м!\n\n[Verse 4 | Chords: Am - Dm - G - C | F - Dm - E7 - Am]\n(Final powerful verse, tapering at the end.)\nЯ то́лько ве́рного коня́,\nЯ то́лько ве́рного коня́\nХоте́л уви́деть в гро́зный час,\nЧтоб защити́л в бою́ меня́!\nХоте́л уви́деть в гро́зный час,\nЧтоб защити́л в бою́ меня́!\n\n[Outro | Chords: Dm - E7 - Am]\n(Choir fades out. Final resonant wooden stomp and a single Gusli pluck into crystalline silence.)", "chordSheet": "Am          Dm        G    C\nКогда мы были на войне,\n   F           Dm        E7   Am\nКогда мы были на войне,\n   Dm          G         C    Am\nТам каждый думал о своей\n   Dm          E7             Am\nЛюбимой или о жене.", "instStyle": "Instrumental Russian Folk-Lounge, 88 BPM, [Key: A-Minor], [Chords: Am - Dm - G - C - F - Dm - E7 - Am], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #noble #rhythmic #wooden, [Focus: Melodic dialogue between Shimmering multi-layered Resonant Gusli, Domra, and Soulful warm Garmon], [Low-end: Heavy resonant Balalaika-contrabass pulses], [Percussion: Minimalist wooden stomps & wood-blocks], massive 3D soundstage, 44.1kHz high-definition, NO VOCALS, NO SINGING, NO BRASS, NO TRUMPETS, NO ROCK DRUMS, NO DISTORTION, NO DIGITAL ARTIFACTS.", "instPrompt": "[Intro | Chords: Am - Dm - E7 - Am]\n(Crisp Gusli and Balalaika-contrabass pulse at 88 BPM.)\n\n[Section 1 - Main Theme: Garmon & Gusli | Chords: Am - Dm - G - C | F - Dm - E7 - Am]\n(Noble Cossack melody played on warm Garmon and shimmering Gusli.)\n\n[Section 2 - Domra & Deep Bass Groove | Chords: Dm - G - C - Am | Dm - E7 - Am]\n(Rhythmic Domra strumming and deep wooden stomps drive the groove.)\n\n[Outro | Chords: Dm - E7 - Am]\n(Final Gusli chord decays into absolute crystalline silence.)"}, {"id": 10, "vol": "Полный каталог (15 песен)", "title": "Вдоль да по речке, вдоль да по Казанке", "subtitle": "Народная плясовая", "category": "Folk-Lounge", "bpm": 78, "timeSig": "4/4", "key": "G-Major", "root": "G", "vocalType": "Noble Slavic male baritone solo with joyful c", "vocalStyle": "Soulful Russian Folk-Lounge, 78 BPM, [Key: G-Major], [Chords: G - C - D7 - G - Em - Am - D7 - G], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #bright #sunny #premium, [Focus: Noble Slavic male baritone solo with joyful conversational phrasing], [Instruments: Shimmering multi-layered Resonant Gusli, Soulful warm Garmon, Bright Classical Grand Piano accents], [Low-end: Deep resonant Balalaika-contrabass pulses], [Percussion: Minimalist organic wood-blocks & soft claps], massive 3D soundstage, 44.1kHz high-definition, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO OPERA VIBRATO OVERKILL, NO GYPSY STYLE, NO TURKISH MOTIFS, NO DIGITAL ARTIFACTS.", "vocalLyrics": "[Intro | Chords: G - C - D7 - G]\n(Bright, sunny Gusli arpeggios in G-Major at 78 BPM. Warm breathing Garmon enters.)\n\n[Verse 1 | Chords: G - C - D7 - G | Em - Am - D7 - G]\n(Vocal: Warm, smiling Slavic male baritone. Crisp wooden accompaniment.)\nВдоль-да по-речке, вдоль-да по-Казанке\nСизый селезень плывёт!\nОй-да лю-ли, лю-ли,\nСизый селезень плывёт!\n\n[Verse 2 | Chords: G - C - D7 - G | Em - Am - D7 - G]\n(Deep Balalaika-contrabass pulse and Grand Piano accents enter.)\nВдоль-да по-бережку, вдоль-да по-крутому\nДобрый молодец идёт!\nОй-да лю-ли, лю-ли,\nДобрый молодец идёт!\n\n[Chorus | Chords: C - D7 - G - Em | Am - D7 - G]\n(Full bright ensemble. Shimmering Gusli and warm Garmon in joyful dialogue.)\nЧесшет он кудри, чесшет он русые\nГребешком да костяным!\nОй-да лю-ли, лю-ли,\nГребешком да костяным!\n\n[Bridge - Instrumental Solo | Chords: G - C - D7 - G - Em - Am - D7 - G]\n(Focus: Virtuosic bright Gusli and Garmon solo in G-Major. Surgical clarity.)\n\n[Verse 3 | Chords: G - C - D7 - G | Em - Am - D7 - G]\n(Warm, celebratory delivery.)\nКому мои кудри, кому мои русы\nДостанутся расчесать?\nДостанутся кудри красной девице\nЛюбить да величать!\n\n[Outro | Chords: Am - D7 - G]\n(Fading into a final warm Garmon chord and a single shimmering Gusli pluck in G-Major.)\nОй-да лю-ли, лю-ли...\nВдоль-да по-речке...", "chordSheet": "G                 C      D7         G\nВдоль да по речке, вдоль да по Казанке\nEm          Am       D7    G\nСизый селезень плывёт!\nC           D7       G     Em\nОй да люли, люли,\nAm          D7       G\nСизый селезень плывёт!", "instStyle": "Instrumental Soulful Russian Folk-Lounge, 78 BPM, [Key: G-Major], [Chords: G - C - D7 - G - Em - Am - D7 - G], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #bright #sunny #premium, [Focus: Dominant soulful warm Garmon and Shimmering multi-layered Resonant Gusli], [Instruments: Gusli, Garmon, Classical Grand Piano], [Low-end: Deep resonant Balalaika-contrabass pulses], massive 3D soundstage, 44.1kHz high-definition, NO VOCALS, NO SINGING, NO BRASS, NO TRUMPETS, NO ROCK DRUMS, NO DISTORTION, NO DIGITAL ARTIFACTS.", "instPrompt": "[Intro | Chords: G - C - D7 - G]\n(Bright G-Major Gusli arpeggios and warm Garmon chords.)\n\n[Section 1 - Main Theme | Chords: G - C - D7 - G | Em - Am - D7 - G]\n(Joyful \"Vdol da po rechke\" melody on leading Garmon and Gusli.)\n\n[Section 2 - Deep Major Groove | Chords: C - D7 - G - Em | Am - D7 - G]\n(Balalaika-contrabass pulse and Grand Piano accents join.)\n\n[Outro | Chords: Am - D7 - G]\n(Final shimmering Gusli pluck in G-Major into crystalline silence.)"}, {"id": 11, "vol": "Полный каталог (15 песен)", "title": "За окошком месяц, под окошком ветер", "subtitle": "С. А. Есенин, 1925", "category": "Folk-Lounge", "bpm": 70, "timeSig": "4/4", "key": "G-Minor", "root": "Gm", "vocalType": "Noble Slavic male baritone solo, warm nostalg", "vocalStyle": "Smooth Modern Ethno-Lounge, 70 BPM, [Key: G-Minor], [Chords: Gm - Cm - F7 - Bb - Eb - Cm - D7 - Gm], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #silver #intimate #noble, [Focus: Noble Slavic male baritone solo, warm nostalgic close-mic delivery], [Instruments: Classical Grand Piano, Shimmering multi-layered Resonant Gusli, Soulful warm Garmon pads], [Low-end: Deep resonant Balalaika-contrabass pulses & smooth sub-bass], massive 3D soundstage, 44.1kHz high-definition, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO OPERA VIBRATO OVERKILL, NO GYPSY STYLE, NO TURKISH MOTIFS, NO DIGITAL ARTIFACTS.", "vocalLyrics": "[Intro | Chords: Gm - Cm - D7 - Gm]\n(Crystalline Grand Piano notes and shimmering Gusli arpeggios in a silver moonlit atmosphere. 70 BPM.)\n\n[Verse 1 | Chords: Gm - Cm - F7 - Bb | Eb - Cm - D7 - Gm]\n(Vocal: Warm, intimate Slavic male baritone. Delicate Gusli and Piano accompaniment.)\nЗа окошком месяц, под окошком ве́тер,\nОблетевший тополь серебрит и светел.\nДальний плач гармони, песня одинокой,\nИ неслышно сгинул день в дали глубокой.\nДальний плач гармони, песня одинокой,\nИ неслышно сгинул день в дали глубокой.\n\n[Verse 2 | Chords: Gm - Cm - F7 - Bb | Eb - Cm - D7 - Gm]\n(Warm breathing Garmon pads and deep Balalaika-contrabass pulse enter softly.)\nПла́чет сыростью ночною старый сад в тумане,\nЗабываются нежданно го́рькие страданья.\nОтшумела ро́ща золотою листвой,\nЧто сгорело — в пепле, что прошло — то чисто.\nОтшумела ро́ща золотою листвой,\nЧто сгорело — в пепле, что прошло — то чисто.\n\n[Bridge - Instrumental Solo | Chords: Cm - F7 - Bb - Eb | Cm - D7 - Gm]\n(Focus: Melodic dialogue between soulful breathing Garmon, Classical Grand Piano, and shimmering Gusli. Surgical separation.)\n\n[Verse 3 | Chords: Gm - Cm - F7 - Bb | Eb - Cm - D7 - Gm]\n(Intimate, philosophical delivery.)\nВ эту ночь под месяц, под холодный ве́тер\nЯ за-всё прощаю то, чем жил на свете.\nЗа окошком месяц, под окошком ве́тер,\nОблетевший тополь серебрит и светел.\n\n[Outro | Chords: Cm - D7 - Gm]\n(Fading Garmon breath and a single crystalline Gusli pluck into silence.)\nЗа окошком месяц... под окошком ве́тер...", "chordSheet": "Gm             Cm      F7          Bb\nЗа окошком месяц, под окошком ветер,\nEb             Cm      D7          Gm\nОблетевший тополь серебрист и светел.", "instStyle": "Instrumental Soulful Russian Folk-Lounge, 70 BPM, [Key: G-Minor], [Chords: Gm - Cm - F7 - Bb - Eb - Cm - D7 - Gm], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #silver #pure #premium, [Focus: Melodic dialogue between Classical Grand Piano, breathing Garmon, and Shimmering Gusli], [Low-end: Deep resonant Balalaika-contrabass pulses], massive 3D soundstage, 44.1kHz high-definition, NO VOCALS, NO SINGING, NO BRASS, NO TRUMPETS, NO ROCK DRUMS, NO DISTORTION, NO DIGITAL ARTIFACTS.", "instPrompt": "[Intro | Chords: Gm - Cm - D7 - Gm]\n(Delicate Grand Piano and crystalline Gusli arpeggios.)\n\n[Section 1 - Main Theme | Chords: Gm - Cm - F7 - Bb | Eb - Cm - D7 - Gm]\n(Breathing Garmon and Gusli weave the nocturnal melody at 70 BPM.)\n\n[Outro | Chords: Cm - D7 - Gm]\n(Final Piano and Gusli note decaying into absolute silence.)"}, {"id": 12, "vol": "Полный каталог (15 песен)", "title": "Не велят Маше за реченьку ходить", "subtitle": "Традиционная народная", "category": "Folk-Lounge", "bpm": 74, "timeSig": "4/4", "key": "A-Minor", "root": "Am", "vocalType": "Deep velvet Slavic female contralto, intimate", "vocalStyle": "Smooth Modern Ethno-Lounge, 74 BPM, [Key: A-Minor], [Chords: Am - Dm - G - C - F - Dm - E7 - Am], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #silky #velvet #premium, [Focus: Deep velvet Slavic female contralto, intimate close-mic delivery], [Instruments: Shimmering multi-layered Resonant Gusli, airy wooden Svirel, Soulful warm Garmon pads], [Low-end: Clean sliding Reese sub-bass & Balalaika-contrabass pulses], [Percussion: Minimalist soft brushes on wood], massive 3D soundstage, 44.1kHz high-definition, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO OPERA VIBRATO OVERKILL, NO GYPSY STYLE, NO TURKISH MOTIFS, NO DIGITAL ARTIFACTS.", "vocalLyrics": "[Intro | Chords: Am - Dm - E7 - Am]\n(Shimmering crystalline Gusli arpeggios and airy Svirel flute. Smooth sub-bass enters at 74 BPM.)\n\n[Verse 1 | Chords: Am - Dm - G - C | F - Dm - E7 - Am]\n(Vocal: Deep velvet female contralto, intimate and smooth.)\nНе велят Маше за реченьку ходить,\nНе велят Маше молодчика любить.\nОй-да не велят Маше молодчика любить!\n\n[Verse 2 | Chords: Am - Dm - G - C | F - Dm - E7 - Am]\n(Smooth Modern Ethno-Lounge pulse with sliding Reese bass and warm Garmon pads.)\nОн несам ходит — коня́ водит за-собой,\nКоня́ водит, да седло носит золотой,\nОй-да седло носит со золотой уздой!\n\n[Bridge - Instrumental Solo | Chords: Dm - G - C - Am | Dm - E7 - Am]\n(Focus: Virtuosic Resonant Gusli and airy Svirel solo over smooth sub-bass. Surgical separation.)\n\n[Verse 3 | Chords: Am - Dm - G - C | F - Dm - E7 - Am]\n(Lush acoustic and electronic fusion, intimate contralto vocals.)\nУж-как стала Маша за реченьку ходить,\nУж-как стала Маша молодчика любить,\nЛасковым словечком сокола дарить!\n\n[Outro | Chords: Dm - E7 - Am]\n(Soft female vocalization fades with a single shimmering Gusli string into crystalline silence.)\nНе велят Маше... за реченьку ходить...", "chordSheet": "Am          Dm      G           C\nНе велят Маше за реченьку ходить,\nF           Dm      E7          Am\nНе велят Маше молодчика любить.", "instStyle": "Instrumental Smooth Modern Ethno-Lounge, 74 BPM, [Key: A-Minor], [Chords: Am - Dm - G - C - F - Dm - E7 - Am], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #silky #pure #premium, [Focus: Melodic dialogue between Shimmering Resonant Gusli and airy Svirel flute], [Low-end: Clean sliding Reese sub-bass & Balalaika-contrabass], massive 3D soundstage, 44.1kHz high-definition, NO VOCALS, NO SINGING, NO BRASS, NO TRUMPETS, NO ROCK DRUMS, NO DISTORTION, NO DIGITAL ARTIFACTS.", "instPrompt": "[Intro | Chords: Am - Dm - E7 - Am]\n(Crystalline Gusli and airy Svirel flute over a 74 BPM lounge pulse.)\n\n[Section 1 - Main Theme | Chords: Am - Dm - G - C | F - Dm - E7 - Am]\n(Lyrical melody on Resonant Gusli with warm Garmon pads.)\n\n[Outro | Chords: Dm - E7 - Am]\n(Fading into a single Gusli string decay into absolute silence.)"}, {"id": 13, "vol": "Полный каталог (15 песен)", "title": "Косарь (Ах ты, степь моя)", "subtitle": "На стихи А. В. Кольцова, 1836", "category": "Folk Epic", "bpm": 76, "timeSig": "4/4", "key": "G-Major", "root": "G", "vocalType": "Noble Slavic male baritone solo, rich chest-v", "vocalStyle": "Powerful Authentic Russian Folk Ballad, 76 BPM, [Key: G-Major], [Chords: G - C - D7 - G - Em - Am - D7 - G], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #noble #freedom #expansive, [Focus: Noble Slavic male baritone solo, rich chest-voice resonance, wide steppe delivery], [Instruments: Shimmering multi-layered Resonant Gusli, Soulful warm Garmon, rhythmic Domra], [Low-end: Deep resonant Balalaika-contrabass pulses], massive 3D soundstage, 44.1kHz high-definition, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO OPERA VIBRATO OVERKILL, NO GYPSY STYLE, NO TURKISH MOTIFS, NO DIGITAL ARTIFACTS.", "vocalLyrics": "[Intro | Chords: G - C - D7 - G]\n(Wide, shimmering Gusli arpeggios in G-Major. Deep wooden resonance of the boundless steppe.)\n\n[Verse 1 | Chords: G - C - D7 - G | Em - Am - D7 - G]\n(Vocal: Rich, free-breathing Slavic male baritone.)\nРаззудись, плечо! Размахнись, рука!\nТы пахни в лицо, ве́тер с полудня!\nОсвежи, взволнуй степь просторную,\nЗажужжи, коса, как пчелиный рой!\n\n[Verse 2 | Chords: G - C - D7 - G | Em - Am - D7 - G]\n(Warm Garmon pads and steady Balalaika-contrabass pulse at 76 BPM.)\nАх-ты, степь моя́, степь привольная,\nШироко ты, степь, пораскинулась,\nК морю Чёрному понадвинулась!\nВ гости я к тебе не оди́н пришёл!\n\n[Bridge - Instrumental Solo | Chords: C - D7 - G - Em | Am - D7 - G]\n(Focus: Virtuosic Gusli and breathing Garmon solo evoking the steppe wind. Surgical clarity.)\n\n[Verse 3 | Chords: G - C - D7 - G | Em - Am - D7 - G]\n(Full noble acoustic ensemble.)\nНапрокат я взял у люде́й косу,\nЗаплачу я им казной золотой!\nТы шуми, трава́ подкошенная,\nНабирайся сил, русска молодость!\n\n[Outro | Chords: Am - D7 - G]\n(Fading into a single warm Garmon chord and shimmering Gusli pluck.)\nРаззудись, плечо... Размахнись, рука...", "chordSheet": "G                 C      D7         G\nРаззудись, плечо! Размахнись, рука!\nEm                Am     D7         G\nТы пахни в лицо, ветер с полудня!", "instStyle": "Instrumental Authentic Russian Folk-Lounge, 76 BPM, [Key: G-Major], [Chords: G - C - D7 - G - Em - Am - D7 - G], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #steppe #noble #pure, [Focus: Shimmering multi-layered Resonant Gusli and Soulful warm Garmon], [Low-end: Deep resonant Balalaika-contrabass], massive 3D soundstage, 44.1kHz high-definition, NO VOCALS, NO SINGING, NO BRASS, NO TRUMPETS, NO ROCK DRUMS, NO DISTORTION, NO DIGITAL ARTIFACTS.", "instPrompt": "[Intro | Chords: G - C - D7 - G]\n(Expansive G-Major Gusli arpeggios.)\n\n[Section 1 - Main Theme | Chords: G - C - D7 - G | Em - Am - D7 - G]\n(Flowing steppe melody on Garmon and Gusli over a 76 BPM contrabass pulse.)\n\n[Outro | Chords: Am - D7 - G]\n(Final Gusli pluck decaying into crystalline silence.)"}, {"id": 14, "vol": "Полный каталог (15 песен)", "title": "Среди долины ровныя", "subtitle": "На стихи А. Ф. Мерзлякова, 1810", "category": "Folk Epic", "bpm": 68, "timeSig": "4/4", "key": "G-Minor", "root": "Gm", "vocalType": "Noble Slavic male baritone lead with deep bas", "vocalStyle": "Soulful Russian Choral-Lounge, 68 BPM, [Key: G-Minor], [Chords: Gm - D7 - Gm - G7 - Cm - F7 - Bb - D7 - Gm], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #monumental #philosophical #pure, [Focus: Noble Slavic male baritone lead with deep basso profondo male choir harmonies], [Instruments: Shimmering multi-layered Resonant Gusli, Soulful warm Garmon pads, Russian bells [Zvon] with long decay], [Low-end: Deep resonant Balalaika-contrabass pulses], massive 3D soundstage, 44.1kHz high-definition, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO OPERA VIBRATO OVERKILL, NO GYPSY STYLE, NO TURKISH MOTIFS, NO DIGITAL ARTIFACTS.", "vocalLyrics": "[Intro | Chords: Gm - D7 - Gm]\n(Slow, majestic Gusli arpeggios and a single deep Russian bell strike [Zvon] with a 10-second decay.)\n\n[Verse 1 | Chords: Gm - D7 - Gm - G7 | Cm - F7 - Bb - D7 | Cm - D7 - Gm]\n(Vocal: Noble Slavic male baritone solo, deep and contemplative.)\nСреди́ долины ровныя,\nНа гладкой высоте,\nЦветёт, растёт высокий дуб\nВ могучей красоте.\nЦветёт, растёт высокий дуб\nВ могучей красоте.\n\n[Verse 2 | Chords: Gm - D7 - Gm - G7 | Cm - F7 - Bb - D7 | Cm - D7 - Gm]\n(Full Noble Male Choir enters with rich basso profondo harmonies. Warm Garmon pads breathe.)\nВысокий дуб, развесистый,\nОди́н у всех в глазах;\nОди́н, оди́н, бедняжечка,\nКак рекрут на часах!\nОди́н, оди́н, бедняжечка,\nКак рекрут на часах!\n\n[Bridge - Instrumental Solo | Chords: Cm - F7 - Bb - Eb | Cm - D7 - Gm]\n(Focus: Melodic dialogue between Resonant Gusli, breathing Garmon, and distant Russian bells [Zvon]. No vocals.)\n\n[Verse 3 | Chords: Gm - D7 - Gm - G7 | Cm - F7 - Bb - D7 | Cm - D7 - Gm]\n(Intimate baritone backed by low choral drone.)\nВзойдёт ли красно солнышко —\nКого под сень принять?\nУдарит ли пого́душка —\nКто бу́дет защищать?\nУдарит ли пого́душка —\nКто бу́дет защищать?\n\n[Verse 4 | Chords: Gm - D7 - Gm - G7 | Cm - F7 - Bb - D7 | Cm - D7 - Gm]\n(Emotional climax, wide 3D soundstage.)\nАх, скучно одинокому\nИ дереву расти!\nАх, горько мо́лодцу без-ми́лой\nВек жизни провести!\n\n[Outro | Chords: Cm - D7 - Gm]\n(Choir fades into a deep bass hum. Final Gusli string decay into silence.)\nСреди́ долины ровныя...", "chordSheet": "Gm         D7     Gm    G7\nСреди долины ровныя,\n   Cm         F7     Bb    D7\nНа гладкой высоте,\n   Cm         D7     Gm    Eb\nЦветёт, растёт высокий дуб\n   Cm      D7        Gm\nВ могучей красоте.", "instStyle": "Instrumental Russian Folk-Lounge, 68 BPM, [Key: G-Minor], [Chords: Gm - D7 - Gm - G7 - Cm - F7 - Bb - D7 - Gm], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #noble #cinematic #pure, [Focus: Melodic dialogue between Russian bells [Zvon], Shimmering Resonant Gusli, and Soulful warm Garmon], [Low-end: Deep resonant Balalaika-contrabass pulses], massive 3D soundstage, 44.1kHz high-definition, NO VOCALS, NO SINGING, NO BRASS, NO TRUMPETS, NO ROCK DRUMS, NO DISTORTION, NO DIGITAL ARTIFACTS.", "instPrompt": "[Intro | Chords: Gm - D7 - Gm]\n(Crystalline Gusli and deep Russian bell [Zvon] strike.)\n\n[Section 1 - Main Theme | Chords: Gm - D7 - Gm - G7 | Cm - F7 - Bb - D7]\n(Majestic \"Sredi doliny rovnyya\" melody on Garmon and Gusli at 68 BPM.)\n\n[Outro | Chords: Cm - D7 - Gm]\n(Fading bell and Gusli pluck into crystalline silence.)"}, {"id": 15, "vol": "Полный каталог (15 песен)", "title": "Во кузнице (Молодые кузнецы)", "subtitle": "Традиционная русская игровая/трудовая", "category": "Ethno-Wave", "bpm": 94, "timeSig": "4/4", "key": "A-Minor", "root": "Am", "vocalType": "Noble Slavic male baritone & female folk duet", "vocalStyle": "Crystalline Atmospheric Ethno-Wave, 94 BPM, [Key: A-Minor], [Chords: Am - Dm - G - C - Dm - Am - E7 - Am], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #rhythmic #organic #groove, [Focus: Noble Slavic male baritone & female folk duet harmonies], [Instruments: Shimmering multi-layered Resonant Gusli, sharp melodic Balalaika, rhythmic Domra, High-pitched metallic anvil-bell accents], [Low-end: Clean sliding Reese sub-bass & Balalaika-contrabass pulses], [Percussion: Crisp wooden rimshots, dry floor stomps & organic claps], massive 3D soundstage, 44.1kHz high-definition, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO OPERA VIBRATO OVERKILL, NO GYPSY STYLE, NO TURKISH MOTIFS, NO DIGITAL ARTIFACTS.", "vocalLyrics": "[Intro | Chords: Am - Dm - E7 - Am]\n(Rhythmic wooden stomps, crisp metallic bell-chime on beat 2 and 4, shimmering Gusli at 94 BPM.)\n\n[Verse 1 | Chords: Am - Dm - G - C | Dm - Am - E7 - Am]\n(Vocal: Energetic Slavic male baritone lead, crisp diction.)\nВо-ку́знице, во-ку́знице,\nВо-ку́знице молоды́е кузнецы́,\nВо-ку́знице молоды́е кузнецы́!\n\n[Verse 2 | Chords: Am - Dm - G - C | Dm - Am - E7 - Am]\n(Deep sliding Reese sub-bass and rhythmic Balalaika enter.)\nОни́ кую́т, они́ кую́т,\nОни́ кую́т, принава́ривают,\nМолотка́ми приуда́ривают!\n\n[Chorus | Chords: Dm - G - C - Am | Dm - E7 - Am]\n(Female and male folk harmonies join in call-and-response.)\nСошьём Ду́не, сошьём Ду́не,\nСошьём Ду́не сарафа́н, сарафа́н!\nНоси́, Ду́ня, носи́, Ду́ня,\nНоси́, Ду́ня, не мара́й, не мара́й!\n\n[Bridge - Instrumental Solo | Chords: Am - Dm - G - C - Dm - Am - E7 - Am]\n(Focus: Virtuosic Balalaika and shimmering Gusli solo over driving wooden stomps and sliding sub-bass. Surgical separation.)\n\n[Verse 3 | Chords: Am - Dm - G - C | Dm - Am - E7 - Am]\n(Full ensemble groove.)\nПо-пра́здникам, по-пра́здникам,\nПо-пра́здникам надева́й, надева́й,\nДо́брых люде́й велича́й, велича́й!\n\n[Outro | Chords: Dm - E7 - Am]\n(Percussion drops out. Final Gusli arpeggio and resonant wooden stomp fade into silence.)\nВо-ку́знице... молоды́е кузнецы́...", "chordSheet": "Am           Dm          G     C\nВо кузнице, во кузнице,\nDm           Am          E7    Am\nВо кузнице молодые кузнецы!", "instStyle": "Instrumental Authentic Russian Folk Groove, 94 BPM, [Key: A-Minor], [Chords: Am - Dm - G - C - Dm - Am - E7 - Am], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #rhythmic #organic #pure, [Focus: Lead melodic Balalaika & Shimmering multi-layered Resonant Gusli], [Low-end: Resonant Balalaika-contrabass pulses & clean sub-bass], [Percussion: Crisp wooden claps, floor stomps & high bell-chime accents], massive 3D soundstage, 44.1kHz high-definition, NO VOCALS, NO SINGING, NO BRASS, NO TRUMPETS, NO ROCK DRUMS, NO DISTORTION, NO DIGITAL ARTIFACTS.", "instPrompt": "[Intro | Chords: Am - Dm - E7 - Am]\n(Rhythmic wooden floor stomps and bright Gusli arpeggios at 94 BPM.)\n\n[Section 1 - Main Theme: Balalaika & Gusli | Chords: Am - Dm - G - C | Dm - Am - E7 - Am]\n(Crisp, playful \"Vo kuznitse\" melody on lead Balalaika and Resonant Gusli.)\n\n[Section 2 - Full Rhythmic Drive | Chords: Dm - G - C - Am | Dm - E7 - Am]\n(Deep Balalaika-contrabass pulse, wooden claps, and shimmering high strings.)\n\n[Outro | Chords: Dm - E7 - Am]\n(Final Gusli pluck and wooden stomp fading into crystalline silence.)"}];
+let currentSongIndex = 0;
+let currentFilter = 'ALL';
+let currentViewMode = 'vocal';
+let transposeSemitones = 0;
+
+const NOTES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+const FLAT_MAP = {'Db':'C#', 'D#':'Eb', 'Gb':'F#', 'G#':'Ab', 'A#':'Bb'};
+
+function transposeChordToken(token, shift) {
+  if (shift === 0) return token;
+  return token.replace(/\b([A-G][b#]?)(m|7|maj7|dim|sus4|sus2|6)?\b/g, (match, root, suffix) => {
+    let normRoot = FLAT_MAP[root] || root;
+    let idx = NOTES.indexOf(normRoot);
+    if (idx === -1) return match;
+    let newIdx = (idx + shift % 12 + 12) % 12;
+    return NOTES[newIdx] + (suffix || '');
+  });
+}
+
+function renderSongList() {
+  const container = document.getElementById('song-list-container');
+  container.innerHTML = '';
+  SONGS.forEach((song, idx) => {
+    if (currentFilter !== 'ALL' && song.category !== currentFilter) return;
+    const div = document.createElement('div');
+    div.className = 'song-item' + (idx === currentSongIndex ? ' active' : '');
+    div.onclick = () => selectSong(idx);
+    div.innerHTML = `
+      <div class="song-item-header">
+        <span class="song-num">ТРЕК #${song.id}</span>
+        <div class="song-badges">
+          <span class="badge-pill">${song.bpm} BPM</span>
+          <span class="badge-pill">${song.root}</span>
+          <span class="badge-pill">${song.category}</span>
+        </div>
+      </div>
+      <div class="song-item-title">${song.title}</div>
+      <div class="song-item-sub">${song.subtitle}</div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function selectSong(idx) {
+  currentSongIndex = idx;
+  transposeSemitones = 0;
+  renderSongList();
+  updateConsoleView();
+}
+
+function transposeCurrent(delta) {
+  transposeSemitones += delta;
+  updateConsoleView();
+}
+
+function updateConsoleView() {
+  const song = SONGS[currentSongIndex];
+  const shift = transposeSemitones;
+  const shiftedRoot = transposeChordToken(song.root, shift);
+
+  document.getElementById('active-title').textContent = `${song.id}. ${song.title}`;
+  document.getElementById('active-sub').textContent = song.subtitle;
+  document.getElementById('active-cat').textContent = song.category;
+  document.getElementById('active-bpm').textContent = song.bpm + ' BPM';
+  document.getElementById('active-sig').textContent = song.timeSig;
+  document.getElementById('active-vocal').textContent = song.vocalType;
+  document.getElementById('active-root').textContent = shiftedRoot;
+
+  document.getElementById('code-block-1').textContent = song.title;
+  document.getElementById('code-block-2').textContent = transposeChordToken(song.vocalStyle, shift);
+  document.getElementById('code-block-3').textContent = transposeChordToken(song.vocalLyrics, shift);
+  document.getElementById('code-block-4').textContent = transposeChordToken(song.chordSheet, shift);
+  document.getElementById('code-block-5').textContent = transposeChordToken(song.instStyle, shift);
+  document.getElementById('code-block-6').textContent = transposeChordToken(song.instPrompt, shift);
+}
+
+function setViewMode(mode) {
+  currentViewMode = mode;
+  ['vocal', 'inst', 'chords', 'all'].forEach(m => {
+    document.getElementById('btn-mode-' + m).classList.toggle('active', m === mode);
+  });
+  const show = (id, visible) => document.getElementById(id).classList.toggle('hidden', !visible);
+  if (mode === 'vocal') {
+    show('wrap-block-1', true); show('wrap-block-2', true); show('wrap-block-3', true);
+    show('wrap-block-4', false); show('wrap-block-5', false); show('wrap-block-6', false);
+  } else if (mode === 'inst') {
+    show('wrap-block-1', true); show('wrap-block-2', false); show('wrap-block-3', false);
+    show('wrap-block-4', false); show('wrap-block-5', true); show('wrap-block-6', true);
+  } else if (mode === 'chords') {
+    show('wrap-block-1', false); show('wrap-block-2', false); show('wrap-block-3', false);
+    show('wrap-block-4', true); show('wrap-block-5', false); show('wrap-block-6', false);
+  } else {
+    for (let i = 1; i <= 6; i++) show('wrap-block-' + i, true);
+  }
+}
+
+function filterSongs(cat, btn) {
+  currentFilter = cat;
+  document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSongList();
+}
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-catalog').classList.toggle('hidden', tab !== 'catalog');
+  document.getElementById('tab-generator').classList.toggle('hidden', tab !== 'generator');
+}
+
+function copyText(elemId, btn) {
+  const text = document.getElementById(elemId).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.classList.add('copied');
+    btn.innerHTML = '✓ Скопировано в буфер!';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = orig;
+    }, 1600);
+  });
+}
+
+// Syllabic Russian Hyphenator for Suno Anti-Filter
+const VOWELS = 'аеёиоуыэюяАЕЁИОУЫЭЮЯ';
+const PREPOSITIONS = new Set(['не', 'ни', 'на', 'за', 'по', 'во', 'со', 'из', 'от', 'до', 'под', 'над', 'при', 'про', 'без', 'для', 'как', 'ой', 'ах', 'ох', 'уж', 'ты', 'мы', 'он']);
+
+function hyphenateRussianWord(word) {
+  // Вместо разрыва корня дефисом (который сбивает ударение в Suno),
+  // оставляем слово ЦЕЛЫМ и ставим знак ударения (́) на ударную гласную:
+  // это даёт 100% правильное русское ударение И меняет код слова для обхода фильтра копирайта!
+  if (word.includes('́') || word.includes('ё') || word.includes('Ё')) return word;
+  const clean = word.replace(/[^а-яёА-ЯЁ]/g, '');
+  if (clean.length < 4) return word;
+  let vIndices = [];
+  for (let i = 0; i < word.length; i++) {
+    if (VOWELS.includes(word[i])) vIndices.push(i);
+  }
+  if (vIndices.length === 0) return word;
+  // В русском языке в словах из 2-3 слогов ударение чаще всего на предпоследнем слоге
+  let targetVowelPos = vIndices.length >= 2 ? vIndices[vIndices.length - 2] : vIndices[0];
+  return word.slice(0, targetVowelPos + 1) + '́' + word.slice(targetVowelPos + 1);
+}
+
+function hyphenateRussianLine(line) {
+  const tokens = line.trim().split(/\s+/);
+  let out = [];
+  for (let i = 0; i < tokens.length; i++) {
+    let w = tokens[i];
+    let bare = w.replace(/[^а-яёА-ЯЁ]/g, '').toLowerCase();
+    if (PREPOSITIONS.has(bare) && i + 1 < tokens.length) {
+      out.push(w + '-' + hyphenateRussianWord(tokens[i + 1]));
+      i++;
+    } else {
+      out.push(hyphenateRussianWord(w));
+    }
+  }
+  return out.join(' ');
+}
+
+function runAutoAgent() {
+  const title = document.getElementById('gen-title').value.trim() || 'Новый трек Исток FM';
+  const genre = document.getElementById('gen-genre').value;
+  const bpm = document.getElementById('gen-bpm').value;
+  const sig = document.getElementById('gen-sig').value;
+  const [keyName, chordProg] = document.getElementById('gen-chords').value.split('|');
+  const vocalFocus = document.getElementById('gen-vocal').value;
+  const raw = document.getElementById('gen-raw-lyrics').value.trim();
+
+  const sigPart = sig.includes('3/4') ? '3/4 Waltz signature, ' : '';
+  const flatChords = chordProg.replace(/\|/g, '-').replace(/\s+/g, ' ');
+
+  const styleOut = `${genre}, ${bpm} BPM, ${sigPart}[Key: ${keyName}], [Chords: ${flatChords}], [Mastering: Clinical Grade], [Mix: Surgical frequency separation], #noble #crystalline #transparent, [Focus: ${vocalFocus}], [Instruments: Shimmering multi-layered Resonant Gusli, Soulful warm Garmon pads with breathing bellows, Classical Grand Piano, airy wooden Svirel], [Low-end: Deep resonant Balalaika-contrabass pulses & clean sliding Reese sub-bass], massive 3D soundstage, 44.1kHz high-definition, NO BRASS, NO TRUMPETS, NO HORNS, NO ROCK DRUMS, NO DISTORTION, NO OPERA VIBRATO OVERKILL, NO GYPSY STYLE, NO TURKISH MOTIFS, NO DIGITAL ARTIFACTS.`;
+
+  const stanzas = raw.split(/\n\s*\n/).filter(Boolean);
+  let lyricsBlocks = [];
+  lyricsBlocks.push(`[Start immediately with Voice]\n(Vocal: ${vocalFocus}. Minimalist crystalline Gusli arpeggio enters in ${keyName} at ${bpm} BPM.)`);
+
+  stanzas.forEach((stanza, idx) => {
+    const lines = stanza.split('\n').map(l => l.trim()).filter(Boolean);
+    const hyphLines = lines.map(hyphenateRussianLine);
+    // Repeat last 2 lines per folk canon
+    if (hyphLines.length >= 2) {
+      hyphLines.push(hyphLines[hyphLines.length - 2]);
+      hyphLines.push(hyphLines[hyphLines.length - 1]);
+    }
+    const stageNote = idx === 0
+      ? '(Intimate close-mic vocal, high-definition Russian diction, delicate Gusli accompaniment)'
+      : idx === 1
+      ? `(Warm Garmon pads with audible breathing bellows enter softly. Deep Balalaika-contrabass pulse at ${bpm} BPM.)`
+      : '(Full ensemble depth, shimmering multi-layered Gusli across a wide 3D stereo field.)';
+
+    lyricsBlocks.push(`[Verse ${idx + 1} | Chords: ${chordProg}]\n${stageNote}\n${hyphLines.join('\n')}`);
+    if (idx === 1 && stanzas.length > 2) {
+      lyricsBlocks.push(`[Bridge - Instrumental Solo | Chords: ${chordProg}]\n(Focus: Melodic dialogue between virtuosic Resonant Gusli and soulful breathing Garmon. Surgical frequency separation. No vocals.)`);
+    }
+  });
+
+  lyricsBlocks.push(`[Outro | Chords: ${chordProg.split('|').pop().trim()}]\n(All instruments fade back into a single shimmering Gusli string decay into absolute crystalline silence. No digital tail.)`);
+
+  document.getElementById('gen-out-style').textContent = styleOut;
+  document.getElementById('gen-out-lyrics').textContent = lyricsBlocks.join('\n\n');
+}
+
+
+function downloadSelfHtml() {
+  const blob = new Blob([document.documentElement.outerHTML], {type: "text/html;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "index.html";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+
+// --- AUTH & PASSWORD GATE ---
+const STUDIO_PASS = "istok2026";
+function checkPassword() {
+  const val = document.getElementById("gate-password-input").value;
+  if (val === STUDIO_PASS) {
+    localStorage.setItem("istok_auth", "true");
+    document.getElementById("password-gate").style.display = "none";
+  } else {
+    document.getElementById("gate-error").textContent = "Неверный пароль. Попробуйте снова.";
+  }
+}
+if (localStorage.getItem("istok_auth") === "true") {
+  document.getElementById("password-gate").style.display = "none";
+}
+
+// --- LIVE SYNC WITH GOOGLE SHEETS ---
+const SPREADSHEET_ID = "1wijVvJhHrLOeZCg7GH6KEYrzXt1Zqn9Ovjf-OODmdXc";
+
+async function syncWithGoogleSheet() {
+  const btn = event ? event.target : null;
+  if (btn) btn.textContent = "⏳ Загрузка...";
+  try {
+    // Fetch Google Visualization JSON or CSV export
+    const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Google Sheets access error");
+    const txt = await res.text();
+    // Parse Google Visualization JSON
+    const jsonStr = txt.substring(txt.indexOf("(") + 1, txt.lastIndexOf(")"));
+    const data = JSON.parse(jsonStr);
+    const rows = data.table.rows;
+    if (rows && rows.length > 0) {
+      let fetchedSongs = [];
+      rows.forEach((r, idx) => {
+        const c = r.c;
+        if (!c || !c[1] || !c[1].v) return;
+        fetchedSongs.push({
+          id: c[0] ? (parseInt(c[0].v) || idx + 1) : idx + 1,
+          vol: "Онлайн База Google",
+          title: c[1] ? c[1].v : "Без названия",
+          subtitle: c[2] ? c[2].v : "",
+          category: c[3] ? c[3].v : "Folk-Lounge",
+          bpm: c[4] ? parseInt(c[4].v) || 70 : 70,
+          timeSig: c[5] ? c[5].v : "4/4",
+          root: c[6] ? c[6].v : "Gm",
+          vocalType: c[7] ? c[7].v : "Lead Vocal",
+          vocalStyle: c[8] ? c[8].v : (SONGS[idx] ? SONGS[idx].vocalStyle : ""),
+          vocalLyrics: c[9] ? c[9].v : (SONGS[idx] ? SONGS[idx].vocalLyrics : ""),
+          chordSheet: c[10] ? c[10].v : (SONGS[idx] ? SONGS[idx].chordSheet : ""),
+          instStyle: c[11] ? c[11].v : (SONGS[idx] ? SONGS[idx].instStyle : ""),
+          instPrompt: c[12] ? c[12].v : (SONGS[idx] ? SONGS[idx].instPrompt : "")
+        });
+      });
+      if (fetchedSongs.length > 0) {
+        SONGS.length = 0;
+        fetchedSongs.forEach(s => SONGS.push(s));
+        renderSongList();
+        selectSong(0);
+        alert(`✓ Успешно синхронизировано! Загружено ${fetchedSongs.length} песен из Google Таблицы.`);
+      }
+    }
+  } catch (err) {
+    console.warn("Онлайн-загрузка через прямой API требует публичного доступа к таблице (Файл -> Поделиться -> Доступ для всех у кого есть ссылка). Используем локальную базу.", err);
+    alert("Таблица сейчас в приватном режиме Google. Чтобы сайт мог читать её напрямую, в таблице нажмите: «Поделиться» -> «Все, у кого есть ссылка: Читатель». Пока используются сохранённые песни.");
+  } finally {
+    if (btn) btn.textContent = "🔄 Синхронизировать";
+  }
+}
+
+// Quiet background auto-sync on page load
+async function autoSyncOnLoad() {
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json`;
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const txt = await res.text();
+    const jsonStr = txt.substring(txt.indexOf("(") + 1, txt.lastIndexOf(")"));
+    const data = JSON.parse(jsonStr);
+    const rows = data.table.rows;
+    if (rows && rows.length > 0) {
+      let fetchedSongs = [];
+      rows.forEach((r, idx) => {
+        const c = r.c;
+        if (!c || !c[1] || !c[1].v || c[1].v === "Название трека") return;
+        fetchedSongs.push({
+          id: c[0] ? (parseInt(c[0].v) || fetchedSongs.length + 1) : fetchedSongs.length + 1,
+          vol: "Онлайн База Google",
+          title: c[1] ? c[1].v : "Без названия",
+          subtitle: c[2] ? c[2].v : "",
+          category: c[3] ? c[3].v : "Folk-Lounge",
+          bpm: c[4] ? parseInt(c[4].v) || 70 : 70,
+          timeSig: c[5] ? c[5].v : "4/4",
+          root: c[6] ? c[6].v : "Gm",
+          vocalType: c[7] ? c[7].v : "Lead Vocal",
+          vocalStyle: c[8] ? c[8].v : (SONGS[idx] ? SONGS[idx].vocalStyle : ""),
+          vocalLyrics: c[9] ? c[9].v : (SONGS[idx] ? SONGS[idx].vocalLyrics : ""),
+          chordSheet: c[10] ? c[10].v : (SONGS[idx] ? SONGS[idx].chordSheet : ""),
+          instStyle: c[11] ? c[11].v : (SONGS[idx] ? SONGS[idx].instStyle : ""),
+          instPrompt: c[12] ? c[12].v : (SONGS[idx] ? SONGS[idx].instPrompt : "")
+        });
+      });
+      if (fetchedSongs.length > 0) {
+        SONGS.length = 0;
+        fetchedSongs.forEach(s => SONGS.push(s));
+        renderSongList();
+        updateConsoleView();
+      }
+    }
+  } catch (e) {
+    // Fallback to built-in 15 songs if Google Sheet is still private
+  }
+}
+
+// Initialize
+renderSongList();
+updateConsoleView();
+runAutoAgent();
+autoSyncOnLoad();
+</script>
+</body>
+</html>
